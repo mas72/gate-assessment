@@ -1,0 +1,1518 @@
+{
+  "version": 2,
+  "users": [
+    {
+      "id": 1,
+      "username": "m.dehghan",
+      "displayName": "Masoud Dehghan",
+      "title": "Team lead",
+      "access": "admin",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 2,
+      "username": "ali.dehghan",
+      "displayName": "Ali Dehghan",
+      "title": "Backend developer",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 3,
+      "username": "a.ghasemi",
+      "displayName": "A. Ghasemi",
+      "title": "DevOps",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 4,
+      "username": "f.ahmadi",
+      "displayName": "F. Ahmadi",
+      "title": "Service engineer",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 5,
+      "username": "a.pahlavanian",
+      "displayName": "A. Pahlavanian",
+      "title": "DevNet",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 6,
+      "username": "hamed.dehghan",
+      "displayName": "Hamed Dehghan",
+      "title": "Frontend developer",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 7,
+      "username": "hosseini.motlagh",
+      "displayName": "Hosseini Motlagh",
+      "title": "QA",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    },
+    {
+      "id": 8,
+      "username": "m.noeiaval",
+      "displayName": "M. Noeiaval",
+      "title": "Service developer",
+      "access": "readonly",
+      "passwordHash": "$2a$10$n.55jyyAoeluFNPelN25ZejDjA.c8udG5o.zUD13i/AFsNDcO0p/G",
+      "createdAt": "2026-09-01T14:24:23.906Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": "backend",
+      "name": "Backend",
+      "icon": "hex",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "be-testing",
+          "title": "Service testing",
+          "description": "Builds tests that protect GATE services: policy, sessions, APIs, and regressions that would escape to Release Test.",
+          "levels": {
+            "1": "Adds tests only when asked; happy path only.",
+            "2": "Covers assigned changes including a few failure cases.",
+            "3": "Consistently tests business logic and error paths for owned services.",
+            "4": "Designs a test strategy for a complex GATE service or integration.",
+            "5": "Raises backend test confidence for the team (fewer escaped defects).",
+            "6": "Standardizes backend testing across GATE services.",
+            "7": "Sets organization-wide backend quality baseline for GATE."
+          }
+        },
+        {
+          "id": "be-code",
+          "title": "Maintainable services",
+          "description": "Writes backend code the next GATE engineer can change safely: clear structure, naming, and reviewable diffs.",
+          "levels": {
+            "1": "Code works with heavy guidance; hard to follow.",
+            "2": "Readable on small changes; larger diffs need cleanup in review.",
+            "3": "Produces review-friendly changes with coherent structure.",
+            "4": "Simplifies a messy GATE module without breaking behavior.",
+            "5": "Sets coding patterns others copy in backend reviews.",
+            "6": "Drives maintainability standards across services.",
+            "7": "Defines GATE backend engineering standards."
+          }
+        },
+        {
+          "id": "be-data",
+          "title": "Data, logs, and state",
+          "description": "Models GATE state so logs, sessions, config, and persistence stay consistent and queryable.",
+          "levels": {
+            "1": "Touches storage/logging with close review.",
+            "2": "Makes correct local changes; misses some integrity cases.",
+            "3": "Designs data/log changes that match how ops will query them.",
+            "4": "Evolves schemas or log contracts without silent breakage.",
+            "5": "Improves GATE observability data for several services.",
+            "6": "Sets data/log standards used across the product.",
+            "7": "Owns GATE data and telemetry strategy."
+          }
+        },
+        {
+          "id": "be-design",
+          "title": "Service design",
+          "description": "Designs GATE backend boundaries: APIs, policy evaluation, HA, and failure behavior.",
+          "levels": {
+            "1": "Implements a spec; does not yet propose design.",
+            "2": "Suggests small design tweaks on assigned work.",
+            "3": "Designs a feature-sized service change with trade-offs.",
+            "4": "Leads design for a complex GATE subsystem.",
+            "5": "Aligns backend design across multiple services.",
+            "6": "Sets architecture direction for GATE backend.",
+            "7": "Owns long-term GATE backend architecture."
+          }
+        },
+        {
+          "id": "be-prod",
+          "title": "Production behavior",
+          "description": "Ships backend changes that hold up under real GATE load, failover, and customer config.",
+          "levels": {
+            "1": "Production issues on owned changes are common.",
+            "2": "Most changes hold; misses some operational cases.",
+            "3": "Owned features behave in production as intended.",
+            "4": "Anticipates operational failure modes before release.",
+            "5": "Improves production resilience for a GATE area.",
+            "6": "Raises backend reliability across the product.",
+            "7": "Owns GATE backend reliability strategy."
+          }
+        },
+        {
+          "id": "be-debug",
+          "title": "Backend diagnosis",
+          "description": "Debugs GATE services with evidence: logs, traces, configs, and reproduction — not guess-and-patch.",
+          "levels": {
+            "1": "Needs a senior to find the root cause.",
+            "2": "Debugs with help; sometimes patches symptoms.",
+            "3": "Finds root cause on owned services and proves it.",
+            "4": "Diagnoses cross-service GATE failures.",
+            "5": "Teaches debugging patterns; shortens incident time.",
+            "6": "Improves how GATE diagnoses backend failures.",
+            "7": "Sets diagnosis practice for the product."
+          }
+        }
+      ]
+    },
+    {
+      "id": "frontend",
+      "name": "Frontend",
+      "icon": "diamond",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "fe-ui",
+          "title": "GATE UI quality",
+          "description": "Builds admin and operator UI that is clear under real GATE workflows (policy, logs, status).",
+          "levels": {
+            "1": "Implements screens with heavy design/lead help.",
+            "2": "Delivers assigned screens; edge states are incomplete.",
+            "3": "Handles empty, error, loading, and permission states.",
+            "4": "Improves a complex GATE flow so operators make fewer mistakes.",
+            "5": "Raises UI consistency across GATE pages.",
+            "6": "Sets frontend UX patterns for the product.",
+            "7": "Owns GATE operator experience strategy."
+          }
+        },
+        {
+          "id": "fe-state",
+          "title": "State and data flow",
+          "description": "Manages client state, API errors, and refresh so GATE UI stays truthful about device/system state.",
+          "levels": {
+            "1": "State bugs are frequent; needs pairing.",
+            "2": "Handles simple fetch/update; races still appear.",
+            "3": "Keeps UI state consistent with GATE APIs.",
+            "4": "Designs data flow for a complex console area.",
+            "5": "Simplifies shared frontend state for the team.",
+            "6": "Sets data-layer standards for GATE UI.",
+            "7": "Owns GATE frontend architecture."
+          }
+        },
+        {
+          "id": "fe-a11y",
+          "title": "Usability",
+          "description": "Makes GATE UI usable for operators: density, keyboard, contrast, and Persian/English where required.",
+          "levels": {
+            "1": "Visual only; usability issues ship unnoticed.",
+            "2": "Fixes obvious usability bugs when reported.",
+            "3": "Checks flows as an operator would, including errors.",
+            "4": "Removes a class of operator confusion in a module.",
+            "5": "Defines usability checks the team runs before PO Checking.",
+            "6": "Sets accessibility/usability bar for GATE UI.",
+            "7": "Owns GATE console usability at product level."
+          }
+        },
+        {
+          "id": "fe-test",
+          "title": "Frontend verification",
+          "description": "Protects GATE UI with tests or disciplined manual scripts that catch regressions before Release Test.",
+          "levels": {
+            "1": "Relies entirely on others to find UI regressions.",
+            "2": "Checks happy path before handoff.",
+            "3": "Covers critical flows and obvious failure UI.",
+            "4": "Adds durable tests or checklists for a GATE module.",
+            "5": "Raises frontend catch-rate for the team.",
+            "6": "Standardizes frontend verification across the console.",
+            "7": "Sets GATE UI quality strategy."
+          }
+        },
+        {
+          "id": "fe-perf",
+          "title": "UI performance",
+          "description": "Keeps GATE consoles responsive on real data volumes (sessions, logs, policy lists).",
+          "levels": {
+            "1": "Performance issues ship unnoticed.",
+            "2": "Fixes slowness when someone reports it.",
+            "3": "Avoids obvious jank on owned pages.",
+            "4": "Profiles and fixes a heavy GATE view.",
+            "5": "Sets performance budgets for key screens.",
+            "6": "Improves performance patterns across the UI.",
+            "7": "Owns GATE UI performance strategy."
+          }
+        },
+        {
+          "id": "fe-debug",
+          "title": "Frontend diagnosis",
+          "description": "Finds whether a GATE console bug is UI, API, or product behavior — then proves it.",
+          "levels": {
+            "1": "Needs help to locate the layer at fault.",
+            "2": "Debugs with browser tools on assigned bugs.",
+            "3": "Isolates UI vs backend with evidence.",
+            "4": "Diagnoses tricky operator-only failures.",
+            "5": "Shortens UI incident time for the team.",
+            "6": "Improves frontend diagnosis practice.",
+            "7": "Sets GATE console reliability practice."
+          }
+        }
+      ]
+    },
+    {
+      "id": "devops",
+      "name": "DevOps",
+      "icon": "loop",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "do-cicd",
+          "title": "CI/CD",
+          "description": "Keeps GATE build, test, and package pipelines trustworthy and fast enough for the sprint cadence.",
+          "levels": {
+            "1": "Follows existing jobs; cannot yet change them safely.",
+            "2": "Fixes simple pipeline breaks with help.",
+            "3": "Owns pipeline changes for assigned GATE components.",
+            "4": "Improves pipeline reliability or feedback time.",
+            "5": "Raises CI quality used by several GATE tracks.",
+            "6": "Sets CI/CD standards for the product.",
+            "7": "Owns GATE delivery pipeline strategy."
+          }
+        },
+        {
+          "id": "do-release",
+          "title": "Release engineering",
+          "description": "Produces GATE builds, artifacts, and version notes that QA and service can actually ship.",
+          "levels": {
+            "1": "Needs a checklist from someone else for every release.",
+            "2": "Runs a known release path with occasional misses.",
+            "3": "Executes GATE releases without drama for owned streams.",
+            "4": "Hardens release steps that previously failed.",
+            "5": "Makes multi-component GATE releases repeatable.",
+            "6": "Designs release process across versions.",
+            "7": "Owns GATE release engineering."
+          }
+        },
+        {
+          "id": "do-obs",
+          "title": "Observability",
+          "description": "Makes GATE health visible: metrics, logs, alerts that operators and developers can use.",
+          "levels": {
+            "1": "Uses existing dashboards only.",
+            "2": "Adds a metric or log when asked.",
+            "3": "Instruments owned systems so failures are obvious.",
+            "4": "Improves alert quality (less noise, faster signal).",
+            "5": "Builds observability that several roles rely on.",
+            "6": "Sets telemetry standards for GATE.",
+            "7": "Owns GATE observability strategy."
+          }
+        },
+        {
+          "id": "do-env",
+          "title": "Environments",
+          "description": "Keeps GATE lab, staging, and related environments close enough to reality to catch release risk.",
+          "levels": {
+            "1": "Uses environments; cannot repair them.",
+            "2": "Fixes simple env issues with help.",
+            "3": "Maintains environments needed for GATE sprint work.",
+            "4": "Removes a class of “works in lab only” failures.",
+            "5": "Designs env strategy for QA and service.",
+            "6": "Standardizes GATE environments across sites.",
+            "7": "Owns GATE environment strategy."
+          }
+        },
+        {
+          "id": "do-sec",
+          "title": "Pipeline and infra security",
+          "description": "Protects GATE delivery: secrets, access, image/supply chain, and least privilege.",
+          "levels": {
+            "1": "Follows security rules when reminded.",
+            "2": "Handles secrets correctly on assigned work.",
+            "3": "Does not introduce obvious security gaps in pipelines.",
+            "4": "Closes a real pipeline or infra security gap.",
+            "5": "Raises security baseline for GATE delivery.",
+            "6": "Sets secure-delivery standards.",
+            "7": "Owns GATE delivery security posture."
+          }
+        },
+        {
+          "id": "do-ops",
+          "title": "Operational response",
+          "description": "When build, deploy, or infra breaks, restores GATE delivery and leaves a durable fix.",
+          "levels": {
+            "1": "Escalates immediately without a first diagnosis.",
+            "2": "Restores service with help; weak write-up.",
+            "3": "Restores and documents a durable fix.",
+            "4": "Leads ops incidents that block the GATE board.",
+            "5": "Cuts repeat delivery-infra incidents.",
+            "6": "Improves GATE ops practice.",
+            "7": "Sets GATE operational excellence."
+          }
+        }
+      ]
+    },
+    {
+      "id": "devnet",
+      "name": "DevNet",
+      "icon": "net",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "dn-auto",
+          "title": "Network automation",
+          "description": "Automates repeatable GATE/network work with scripts or APIs instead of one-off console clicks.",
+          "levels": {
+            "1": "Runs steps manually from a runbook.",
+            "2": "Writes small scripts for assigned tasks.",
+            "3": "Automates a real GATE/network workflow others reuse.",
+            "4": "Designs automation that survives device or API changes.",
+            "5": "Raises automation adoption on the team.",
+            "6": "Sets automation standards for GATE/network work.",
+            "7": "Owns GATE network-automation strategy."
+          }
+        },
+        {
+          "id": "dn-api",
+          "title": "Device and API integration",
+          "description": "Integrates GATE with network platforms (REST, SSH, vendors) with clear contracts and failure handling.",
+          "levels": {
+            "1": "Calls APIs with heavy guidance.",
+            "2": "Implements a specified integration; error handling is thin.",
+            "3": "Builds a reliable integration with retries and clear errors.",
+            "4": "Designs a multi-device integration for GATE.",
+            "5": "Improves integration quality others depend on.",
+            "6": "Sets API integration patterns for the product.",
+            "7": "Owns GATE north/south integration architecture."
+          }
+        },
+        {
+          "id": "dn-policy",
+          "title": "Policy as code",
+          "description": "Treats firewall/UTM policy and network intent as reviewable, testable change — not tribal knowledge.",
+          "levels": {
+            "1": "Applies policy changes by instruction only.",
+            "2": "Documents changes; little validation.",
+            "3": "Makes policy changes reviewable and reversible.",
+            "4": "Adds checks that catch dangerous policy diffs.",
+            "5": "Spreads policy-as-code practice on GATE.",
+            "6": "Sets policy-change standards across environments.",
+            "7": "Owns GATE policy lifecycle."
+          }
+        },
+        {
+          "id": "dn-net",
+          "title": "Network literacy",
+          "description": "Reasons about L3–L7 behavior that APK Gate must inspect, NAT, route, or log.",
+          "levels": {
+            "1": "Needs a senior to interpret packet/path issues.",
+            "2": "Reads basic routing/firewall symptoms with help.",
+            "3": "Explains path, NAT, and policy hits for owned cases.",
+            "4": "Diagnoses non-obvious GATE/network interactions.",
+            "5": "Teaches network reasoning to software teammates.",
+            "6": "Sets the network bar for GATE engineers.",
+            "7": "Owns GATE network-domain expertise."
+          }
+        },
+        {
+          "id": "dn-tooling",
+          "title": "Tooling",
+          "description": "Builds small internal tools that make GATE network work faster and safer.",
+          "levels": {
+            "1": "Uses tools others built.",
+            "2": "Patches a tool when asked.",
+            "3": "Ships a tool or script the team actually runs.",
+            "4": "Turns a painful workflow into a maintained tool.",
+            "5": "Portfolio of tools used across roles.",
+            "6": "Sets tooling standards and ownership.",
+            "7": "Owns GATE DevNet platform tooling."
+          }
+        },
+        {
+          "id": "dn-debug",
+          "title": "Net + software diagnosis",
+          "description": "Splits “device, path, GATE software, or config” and proves it with captures, logs, and diffs.",
+          "levels": {
+            "1": "Cannot yet isolate the layer.",
+            "2": "Debugs with help from service or backend.",
+            "3": "Produces a clear root-cause story on owned cases.",
+            "4": "Leads mixed net/software incidents.",
+            "5": "Shortens mean-time-to-diagnosis for the team.",
+            "6": "Improves GATE diagnosis playbooks.",
+            "7": "Sets GATE net/software incident practice."
+          }
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "name": "Service",
+      "icon": "wrench",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "sv-deploy",
+          "title": "Deployment",
+          "description": "Installs and upgrades GATE in customer or lab topologies without avoidable downtime or leftover config debt.",
+          "levels": {
+            "1": "Follows a script; stalls on any deviation.",
+            "2": "Completes standard deploys; unusual topologies need help.",
+            "3": "Owns a deploy/upgrade including rollback plan.",
+            "4": "Handles messy real-world topologies cleanly.",
+            "5": "Improves deploy playbooks the team uses.",
+            "6": "Sets GATE deploy standards across sites.",
+            "7": "Owns GATE field-deploy strategy."
+          }
+        },
+        {
+          "id": "sv-trouble",
+          "title": "Troubleshooting",
+          "description": "Turns a customer or lab symptom into a GATE root cause using logs, policy, sessions, and topology.",
+          "levels": {
+            "1": "Collects info; diagnosis comes from someone else.",
+            "2": "Solves common cases; escalates the rest early.",
+            "3": "Closes typical GATE cases with a clear write-up.",
+            "4": "Solves unusual multi-factor failures.",
+            "5": "Raises first-time-fix quality for the service track.",
+            "6": "Designs troubleshooting paths used by others.",
+            "7": "Owns GATE field-diagnosis excellence."
+          }
+        },
+        {
+          "id": "sv-config",
+          "title": "Configuration quality",
+          "description": "Leaves GATE configs that are correct, documented, and supportable after you leave the session.",
+          "levels": {
+            "1": "Configs work in the moment; later people cannot follow them.",
+            "2": "Documents the change; structure is inconsistent.",
+            "3": "Produces clean, named, supportable GATE configs.",
+            "4": "Repairs config debt that caused repeat tickets.",
+            "5": "Sets config patterns for common GATE designs.",
+            "6": "Standardizes configuration across customers/labs.",
+            "7": "Owns GATE configuration practice."
+          }
+        },
+        {
+          "id": "sv-customer",
+          "title": "Customer communication",
+          "description": "Explains GATE status, risk, and next steps in language PO and customers can use.",
+          "levels": {
+            "1": "Needs a lead on every customer thread.",
+            "2": "Updates when asked; tone is sometimes too internal.",
+            "3": "Gives timely, plain-language status and asks.",
+            "4": "Manages tense escalations without hiding risk.",
+            "5": "Improves how GATE service communicates as a group.",
+            "6": "Sets customer-comm standards with PO/support.",
+            "7": "Owns GATE customer engineering voice."
+          }
+        },
+        {
+          "id": "sv-escalation",
+          "title": "Escalation and knowledge",
+          "description": "Escalates to backend/QA/DevNet with a complete packet — and feeds the fix back into runbooks.",
+          "levels": {
+            "1": "Escalates with “it doesn’t work”.",
+            "2": "Includes logs; missing topology or repro.",
+            "3": "Sends a complete packet and tracks the answer.",
+            "4": "Turns escalations into team knowledge.",
+            "5": "Reduces repeat escalations in a GATE area.",
+            "6": "Designs the escalation path across roles.",
+            "7": "Owns GATE service knowledge system."
+          }
+        },
+        {
+          "id": "sv-ops",
+          "title": "Operational ownership",
+          "description": "Stays with a GATE field issue through workaround, fix, and confirmation — not just the first reply.",
+          "levels": {
+            "1": "Hands off at the first hard step.",
+            "2": "Owns simple cases to close.",
+            "3": "Owns assigned cases through verification.",
+            "4": "Picks up aging GATE issues that threaten customers.",
+            "5": "Improves service SLA outcomes for the team.",
+            "6": "Sets operational ownership norms.",
+            "7": "Owns GATE service operations with leadership."
+          }
+        }
+      ]
+    },
+    {
+      "id": "qa",
+      "name": "QA",
+      "icon": "check",
+      "technicalWeight": 0.5,
+      "metrics": [
+        {
+          "id": "qa-design",
+          "title": "Test design",
+          "description": "Designs GATE test coverage around risk: policy, HA, upgrade, logging, and operator paths — not only happy clicks.",
+          "levels": {
+            "1": "Executes cases others wrote.",
+            "2": "Adds cases for assigned features with help.",
+            "3": "Designs a feature test set that finds real defects.",
+            "4": "Designs risk-based coverage for a GATE area.",
+            "5": "Raises test design quality for the team.",
+            "6": "Sets GATE test-design standards.",
+            "7": "Owns GATE quality strategy."
+          }
+        },
+        {
+          "id": "qa-release",
+          "title": "Release Test",
+          "description": "Runs GATE Release Test so the board gets a clear go/no-go, not a vague “still checking”.",
+          "levels": {
+            "1": "Needs a list for every pass; status is late.",
+            "2": "Completes a known suite; reporting is delayed.",
+            "3": "Finishes planned Release Test with a clear result.",
+            "4": "Shortens Release Test without losing signal.",
+            "5": "Makes Release Test a reliable GATE gate.",
+            "6": "Designs release-test strategy across versions.",
+            "7": "Owns GATE release-test practice."
+          }
+        },
+        {
+          "id": "qa-defects",
+          "title": "Defect quality",
+          "description": "Writes GATE bugs that developers can reproduce: build, topology, expected vs actual, evidence.",
+          "levels": {
+            "1": "Reports are incomplete; bounce in review.",
+            "2": "Most bugs are usable; some missing evidence.",
+            "3": "Defects are complete and correctly severity-tagged.",
+            "4": "Clusters defects so backend/frontend can see the pattern.",
+            "5": "Improves defect quality across the team.",
+            "6": "Sets defect standards used by service and QA.",
+            "7": "Owns GATE defect practice."
+          }
+        },
+        {
+          "id": "qa-negative",
+          "title": "Negative and security testing",
+          "description": "Probes GATE the way a hostile or clumsy operator would: bad config, privilege, malformed traffic.",
+          "levels": {
+            "1": "Tests only the demonstrated happy path.",
+            "2": "Adds a few negative cases when reminded.",
+            "3": "Includes meaningful negative cases on owned features.",
+            "4": "Finds a class of abuse/misconfig bugs.",
+            "5": "Builds negative/security checks into the suite.",
+            "6": "Sets GATE negative-test standards.",
+            "7": "Owns GATE product-security test strategy."
+          }
+        },
+        {
+          "id": "qa-auto",
+          "title": "Test automation",
+          "description": "Automates stable GATE checks so humans spend time on exploratory and release risk.",
+          "levels": {
+            "1": "No automation yet.",
+            "2": "Extends existing automation with help.",
+            "3": "Adds reliable automated checks for owned areas.",
+            "4": "Turns a painful manual GATE suite into automation.",
+            "5": "Raises automation value for the whole team.",
+            "6": "Sets automation standards and ownership.",
+            "7": "Owns GATE test-automation strategy."
+          }
+        },
+        {
+          "id": "qa-risk",
+          "title": "Risk communication",
+          "description": "Tells PO and the lead what GATE can ship, what is unknown, and what would bite customers.",
+          "levels": {
+            "1": "Status is a list of cases, not a risk call.",
+            "2": "Flags obvious blockers late.",
+            "3": "Gives a clear risk summary with evidence.",
+            "4": "Changes the release call with a well-argued risk.",
+            "5": "Improves how GATE talks about quality risk.",
+            "6": "Sets go/no-go language with PO and lead.",
+            "7": "Owns GATE quality-risk communication."
+          }
+        }
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "id": "agile",
+      "title": "Agile & Scrum",
+      "icon": "cycle",
+      "weight": 0.15,
+      "metrics": [
+        {
+          "id": "sprint-reliability",
+          "title": "Sprint reliability",
+          "description": "Protects sprint goals with honest scope control and predictable finish quality on GATE work.",
+          "levels": {
+            "1": "Needs help to finish committed tickets inside the sprint.",
+            "2": "Usually finishes assigned work; flags slip risk late in the sprint.",
+            "3": "Holds commitments and splits or descope early when risk appears.",
+            "4": "Stabilizes sprint outcomes for a whole slice of the board.",
+            "5": "Raises the team’s planning honesty and finish rate across sprints.",
+            "6": "Sets planning norms used by more than one GATE track.",
+            "7": "Defines how GATE measures and protects delivery reliability."
+          }
+        },
+        {
+          "id": "flow",
+          "title": "Flow",
+          "description": "Keeps work moving: limited WIP, fewer idle handoffs, faster feedback in Code Review and Release Test.",
+          "levels": {
+            "1": "Often waits on others without updating the ticket.",
+            "2": "Moves own tickets; still piles up WIP under pressure.",
+            "3": "Keeps personal WIP low and unblocks the next reviewer.",
+            "4": "Removes recurring wait time (review, test, deploy) for the team.",
+            "5": "Improves cross-role flow (dev → review → QA → PO).",
+            "6": "Designs process changes that cut GATE cycle time.",
+            "7": "Owns flow metrics and intervention for the product."
+          }
+        },
+        {
+          "id": "blockers",
+          "title": "Blocker handling",
+          "description": "Surfaces blockers with enough context for Technical Review, QA, or PO to act the same day.",
+          "levels": {
+            "1": "Blockers appear only when someone asks.",
+            "2": "Reports blockers in standup with partial context.",
+            "3": "Writes a clear blocker (impact, tried steps, ask) and follows through.",
+            "4": "Unblocks others and prevents the same stall from repeating.",
+            "5": "Builds a habit of early risk flags across the sprint.",
+            "6": "Changes how GATE tracks and clears systemic blockers.",
+            "7": "Sets the standard for risk communication on the product."
+          }
+        },
+        {
+          "id": "dod",
+          "title": "Definition of Done",
+          "description": "Marks work done only when review, tests, and GATE acceptance checks are actually complete.",
+          "levels": {
+            "1": "Needs reminders before a ticket is truly done.",
+            "2": "Follows DoD on own tickets most of the time.",
+            "3": "Does not close work with known gaps in test or review.",
+            "4": "Holds peers to DoD in review and stand-up.",
+            "5": "Tightens DoD where GATE releases have been bitten.",
+            "6": "Aligns DoD across tracks (service, QA, product).",
+            "7": "Owns GATE done-criteria at product level."
+          }
+        },
+        {
+          "id": "process",
+          "title": "Team process",
+          "description": "Improves how GATE runs: retros, board hygiene, Original Story Point, and review queues.",
+          "levels": {
+            "1": "Attends ceremonies; rarely contributes changes.",
+            "2": "Gives useful retro notes on own work.",
+            "3": "Takes and finishes a process action item.",
+            "4": "Drives a practice change the team actually keeps.",
+            "5": "Improves a queue (Code Review, Technical Review, Release Test).",
+            "6": "Designs process used by multiple GATE roles.",
+            "7": "Sets GATE operating cadence with the lead and PO."
+          }
+        },
+        {
+          "id": "breakdown",
+          "title": "Task breakdown",
+          "description": "Splits GATE work into testable tickets with scope, dependencies, and acceptance.",
+          "levels": {
+            "1": "Needs a lead to slice the work.",
+            "2": "Breaks assigned stories into steps with help.",
+            "3": "Writes tickets others can pick up without a meeting.",
+            "4": "Slices risky GATE work so QA and PO can accept incrementally.",
+            "5": "Teaches others to break down ambiguous UTM/firewall work.",
+            "6": "Sets breakdown patterns for a subsystem.",
+            "7": "Defines how GATE scopes large product bets."
+          }
+        },
+        {
+          "id": "estimation",
+          "title": "Estimation",
+          "description": "Gives realistic estimates that include GATE complexity, dependencies, and release risk.",
+          "levels": {
+            "1": "Estimates are guesses; often far off.",
+            "2": "Estimates assigned work; updates late when surprised.",
+            "3": "Explains assumptions and revises when facts change.",
+            "4": "Improves team forecast quality on similar work.",
+            "5": "Accounts for cross-track dependencies in planning.",
+            "6": "Calibrates estimation across GATE roles.",
+            "7": "Owns how GATE forecasts major releases."
+          }
+        }
+      ]
+    },
+    {
+      "id": "soft",
+      "title": "Soft skills",
+      "icon": "people",
+      "weight": 0.15,
+      "metrics": [
+        {
+          "id": "communication",
+          "title": "Communication",
+          "description": "Writes and speaks so GATE teammates, QA, and PO can act without extra decoding.",
+          "levels": {
+            "1": "Updates are sparse or hard to follow.",
+            "2": "Communicates when asked; tickets sometimes lack context.",
+            "3": "Proactive, concise updates in Jira and chat.",
+            "4": "Frames issues so the next role can decide quickly.",
+            "5": "Improves how the team writes tickets and reviews.",
+            "6": "Aligns communication across GATE and adjacent teams.",
+            "7": "Sets the voice of GATE engineering with stakeholders."
+          }
+        },
+        {
+          "id": "collaboration",
+          "title": "Collaboration",
+          "description": "Works with backend, frontend, DevOps, DevNet, service, and QA as one GATE delivery line.",
+          "levels": {
+            "1": "Stays in own lane; handoffs are rough.",
+            "2": "Cooperates when others reach out.",
+            "3": "Seeks the right teammate before the work stalls.",
+            "4": "Makes cross-role work smoother for everyone involved.",
+            "5": "Builds working agreements between tracks.",
+            "6": "Resolves recurring cross-team friction.",
+            "7": "Designs how GATE collaborates with other APK groups."
+          }
+        },
+        {
+          "id": "ownership",
+          "title": "Ownership",
+          "description": "Stays with a GATE issue until it is shipped, verified, or explicitly handed off.",
+          "levels": {
+            "1": "Drops work at the first handoff.",
+            "2": "Owns assigned tickets through coding, not always through verify.",
+            "3": "Follows work through review, test, and PO checking.",
+            "4": "Picks up orphaned GATE issues that threaten the sprint.",
+            "5": "Owns a subsystem’s health, not only tickets.",
+            "6": "Owns outcomes across several roles or releases.",
+            "7": "Owns GATE product health with the lead."
+          }
+        },
+        {
+          "id": "feedback",
+          "title": "Feedback",
+          "description": "Gives and takes specific, respectful feedback in review and 1:1s.",
+          "levels": {
+            "1": "Avoids feedback or takes it personally.",
+            "2": "Accepts feedback; rarely offers useful comments.",
+            "3": "Gives concrete, kind review notes and acts on received feedback.",
+            "4": "Raises the quality of team feedback loops.",
+            "5": "Coaches others on how to review GATE work.",
+            "6": "Builds a feedback culture across tracks.",
+            "7": "Sets calibration norms for GATE performance talks."
+          }
+        },
+        {
+          "id": "mentoring",
+          "title": "Mentoring",
+          "description": "Helps others get productive on APK Gate without creating a bottleneck.",
+          "levels": {
+            "1": "Not yet mentoring.",
+            "2": "Answers questions when asked.",
+            "3": "Pairs regularly and leaves notes others can reuse.",
+            "4": "Has a clear mentee or onboarding impact.",
+            "5": "Creates guides that shorten GATE ramp-up.",
+            "6": "Builds mentoring capacity in other seniors.",
+            "7": "Designs how GATE grows engineers."
+          }
+        },
+        {
+          "id": "stakeholders",
+          "title": "Stakeholders",
+          "description": "Works with PO, support, and adjacent teams without surprising them.",
+          "levels": {
+            "1": "Needs a lead in every stakeholder conversation.",
+            "2": "Joins PO/support discussions with preparation.",
+            "3": "Handles routine stakeholder asks independently.",
+            "4": "Sets expectations and says no with a clear alternative.",
+            "5": "Represents GATE in cross-team forums.",
+            "6": "Shapes stakeholder process (intake, severity, SLA).",
+            "7": "Is a trusted face of GATE engineering externally."
+          }
+        },
+        {
+          "id": "pressure",
+          "title": "Calm under pressure",
+          "description": "Stays useful during incidents, release crunches, and customer escalations.",
+          "levels": {
+            "1": "Freezes or goes quiet when things break.",
+            "2": "Helps with guidance; stress shows in communication.",
+            "3": "Stays factual and useful in a GATE incident.",
+            "4": "Steadies others during a bad release or outage.",
+            "5": "Runs incident comms and follow-up for the team.",
+            "6": "Improves how GATE handles high-severity events.",
+            "7": "Sets incident culture for the product."
+          }
+        }
+      ]
+    },
+    {
+      "id": "delivery",
+      "title": "Delivery & quality",
+      "icon": "ship",
+      "weight": 0.1,
+      "metrics": [
+        {
+          "id": "predictable",
+          "title": "Predictable delivery",
+          "description": "Finishes GATE work when promised, or renegotiates before the date slips silently.",
+          "levels": {
+            "1": "Dates slip without warning.",
+            "2": "Usually on time for small work; larger items drift.",
+            "3": "Forecasts own work and flags slip early.",
+            "4": "Makes a stream of GATE work predictable for the board.",
+            "5": "Improves team-level date honesty.",
+            "6": "Sets delivery contracts across tracks.",
+            "7": "Owns GATE release predictability with PO."
+          }
+        },
+        {
+          "id": "release-quality",
+          "title": "Release quality",
+          "description": "Changes land in GATE releases without avoidable rollback, hotfix, or support storm.",
+          "levels": {
+            "1": "Changes often bounce in Release Test or production.",
+            "2": "Most changes land; regressions still surprise QA.",
+            "3": "Releases of owned work are boring in a good way.",
+            "4": "Reduces regression class for a GATE area.",
+            "5": "Raises release bar for the whole team.",
+            "6": "Designs quality gates used across GATE versions.",
+            "7": "Owns GATE release quality strategy."
+          }
+        },
+        {
+          "id": "incidents",
+          "title": "Incident follow-through",
+          "description": "When GATE breaks, drives detection, mitigation, and a fix that stays fixed.",
+          "levels": {
+            "1": "Needs someone else to drive every incident.",
+            "2": "Helps mitigate; follow-up tickets linger.",
+            "3": "Owns mitigation and a durable fix for assigned incidents.",
+            "4": "Leads post-incident actions the team actually completes.",
+            "5": "Cuts repeat incidents in a GATE subsystem.",
+            "6": "Improves incident practice across the product.",
+            "7": "Sets GATE reliability response at org level."
+          }
+        }
+      ]
+    },
+    {
+      "id": "growth",
+      "title": "Growth",
+      "icon": "grow",
+      "weight": 0.1,
+      "metrics": [
+        {
+          "id": "learning",
+          "title": "Learning the product",
+          "description": "Deepens APK Gate knowledge: UTM behavior, policy, logging, HA, and customer usage.",
+          "levels": {
+            "1": "Learns only what the current ticket requires.",
+            "2": "Builds a basic map of GATE modules.",
+            "3": "Connects own work to real customer and ops behavior.",
+            "4": "Becomes the go-to person for a GATE area.",
+            "5": "Spreads product knowledge across roles.",
+            "6": "Shapes how GATE learns as a team.",
+            "7": "Defines GATE technical mastery for the company."
+          }
+        },
+        {
+          "id": "sharing",
+          "title": "Knowledge sharing",
+          "description": "Leaves the next person faster: notes, runbooks, reviews, and short write-ups.",
+          "levels": {
+            "1": "Knowledge stays in chat or in one head.",
+            "2": "Shares when asked.",
+            "3": "Writes useful notes on non-obvious GATE work.",
+            "4": "Produces guides others actually use.",
+            "5": "Runs sessions that change how the team works.",
+            "6": "Builds a knowledge system across tracks.",
+            "7": "Owns GATE knowledge strategy."
+          }
+        },
+        {
+          "id": "self-direction",
+          "title": "Self-direction",
+          "description": "Finds the next useful GATE problem without waiting for a perfectly specified ticket.",
+          "levels": {
+            "1": "Waits to be assigned.",
+            "2": "Asks for the next task when idle.",
+            "3": "Pulls the highest-value ready work and clarifies it.",
+            "4": "Creates well-shaped work the board needs.",
+            "5": "Points the team at the right problems.",
+            "6": "Sets a backlog strategy with the lead and PO.",
+            "7": "Sets GATE investment themes."
+          }
+        },
+        {
+          "id": "career",
+          "title": "Career development",
+          "description": "Works a visible growth plan: skills, scope, and evidence toward the next GATE level.",
+          "levels": {
+            "1": "No plan; growth is accidental.",
+            "2": "Has goals; follow-through is uneven.",
+            "3": "Runs a simple plan and shows evidence at review.",
+            "4": "Helps others build a credible growth plan.",
+            "5": "Raises the bar for how GATE talks about levels.",
+            "6": "Designs development paths for a track.",
+            "7": "Owns GATE talent development with leadership."
+          }
+        }
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "id": 1,
+      "expected": 1,
+      "summary": "Works with close guidance on well-scoped GATE work. Learns product fundamentals and contributes safely. Impact is local and learning-driven.",
+      "promotionGates": [
+        "Finish small, well-defined GATE tasks end-to-end with support",
+        "Follow team workflows: branches, reviews, and status updates in Jira",
+        "Raise blockers early with enough context for the next person",
+        "Document what you learned and apply review feedback",
+        "Show steady improvement across several sprints"
+      ]
+    },
+    {
+      "id": 2,
+      "expected": 1.5,
+      "summary": "Delivers well-defined work with moderate guidance and growing independence. Impact is consistent contribution to sprint goals.",
+      "promotionGates": [
+        "Deliver well-defined work from planning to production with little rework",
+        "Work smoothly with QA, PO, and reviewers during a GATE sprint",
+        "Give review comments that catch real issues, not only style",
+        "Keep quality and delivery predictable across multiple sprints",
+        "Clarify requirements when a ticket is incomplete"
+      ]
+    },
+    {
+      "id": 3,
+      "expected": 2.5,
+      "summary": "Delivers independently across design, implementation, test, and release. Handles moderate ambiguity. Impact is reliable execution at team level.",
+      "promotionGates": [
+        "Own features end-to-end with predictable quality and light oversight",
+        "Turn partially defined problems into a clear plan and a working change",
+        "Lead work that spans more than one sprint without dropping quality",
+        "Mentor newer teammates through pairing and review",
+        "Make technical choices and explain the trade-offs"
+      ]
+    },
+    {
+      "id": 4,
+      "expected": 3.5,
+      "summary": "Leads complex GATE decisions, reduces ambiguity, and raises team effectiveness. Impact is amplified through others.",
+      "promotionGates": [
+        "Lead complex initiatives and cut delivery risk for the team",
+        "Improve GATE engineering practices with visible quality or speed gains",
+        "Grow others into independent owners of their area",
+        "Align the team on standards for APK Gate work",
+        "Hold strong delivery across several review cycles"
+      ]
+    },
+    {
+      "id": 5,
+      "expected": 4,
+      "summary": "Aligns architecture and execution across GATE areas. Handles high-impact ambiguity. Impact is cross-team.",
+      "promotionGates": [
+        "Lead work that spans backend, frontend, DevOps, or service tracks",
+        "Set technical direction for a shared GATE subsystem",
+        "Shape roadmap choices with clear risk and trade-off framing",
+        "Improve multi-area outcomes such as release reliability or lead time",
+        "Coach senior engineers to take broader ownership"
+      ]
+    },
+    {
+      "id": 6,
+      "expected": 4.5,
+      "summary": "Sets long-term technical direction, removes systemic risk, and ties GATE engineering to product outcomes. Impact is organizational.",
+      "promotionGates": [
+        "Define and execute a multi-cycle technical strategy with measurable results",
+        "Resolve systemic issues that span several GATE domains",
+        "Grow other technical decision-makers on the team",
+        "Keep technical direction aligned with PO and business constraints",
+        "Influence senior stakeholders with credible technical judgment"
+      ]
+    },
+    {
+      "id": 7,
+      "expected": 5,
+      "summary": "Shapes APK Gate technical trajectory and engineering culture. Impact is long-term and company-wide.",
+      "promotionGates": [
+        "Sustain company-level impact on GATE quality and direction",
+        "Raise engineering standards and culture across the product",
+        "Develop the next generation of GATE technical leaders",
+        "Influence product direction through technical vision",
+        "Represent GATE engineering credibly outside the immediate team"
+      ]
+    }
+  ],
+  "scoring": {
+    "scale": [
+      {
+        "value": 5,
+        "label": "Exceptional",
+        "hint": "Could teach this; consistently sets the bar"
+      },
+      {
+        "value": 4,
+        "label": "Strong",
+        "hint": "Exceeds what is typical for this metric"
+      },
+      {
+        "value": 3,
+        "label": "Proficient",
+        "hint": "Solid competence at the selected level"
+      },
+      {
+        "value": 2,
+        "label": "Developing",
+        "hint": "Partial skill; gaps need a plan"
+      },
+      {
+        "value": 1,
+        "label": "Foundational",
+        "hint": "Early stage; needs guidance"
+      }
+    ],
+    "verdicts": [
+      {
+        "id": "exceptional",
+        "label": "Exceptional",
+        "band": "Far above level",
+        "minDiff": 0.75,
+        "action": "Nominate for promotion review and discuss next-level expectations"
+      },
+      {
+        "id": "above",
+        "label": "Above expectations",
+        "band": "Above level",
+        "minDiff": 0.25,
+        "action": "Acknowledge the work; give stretch assignments; accelerate the growth plan"
+      },
+      {
+        "id": "meets",
+        "label": "Meets expectations",
+        "band": "At level",
+        "minDiff": -0.24,
+        "action": "Standard merit and a normal development plan"
+      },
+      {
+        "id": "below",
+        "label": "Needs improvement",
+        "band": "Below level",
+        "minDiff": -0.74,
+        "action": "Written improvement plan, bi-weekly check-ins, targeted coaching"
+      },
+      {
+        "id": "unsat",
+        "label": "Unsatisfactory",
+        "band": "Well below level",
+        "minDiff": null,
+        "action": "Immediate performance plan with HR; weekly coaching"
+      }
+    ],
+    "antiPatterns": [
+      {
+        "title": "Recency bias",
+        "problem": "Scoring only from the last sprint before review.",
+        "fix": "Use notes collected through the period, not memory of the last week."
+      },
+      {
+        "title": "Velocity as a personal KPI",
+        "problem": "Treating story points as an individual score.",
+        "fix": "Velocity is a team planning tool. Score outcomes and quality, not raw points."
+      },
+      {
+        "title": "Halo or horn",
+        "problem": "One strength or miss colors every domain.",
+        "fix": "Score each domain on its own evidence."
+      },
+      {
+        "title": "Missing evidence",
+        "problem": "Scores of 4+ or 2- with no named example.",
+        "fix": "Tie outliers to a ticket, review, incident, or customer case."
+      },
+      {
+        "title": "Gaming the metric",
+        "problem": "Optimizing the score instead of GATE outcomes.",
+        "fix": "Prefer cycle time, release health, and customer impact."
+      },
+      {
+        "title": "Uncalibrated leads",
+        "problem": "Different reviewers using the 1–5 scale differently.",
+        "fix": "Calibrate once per cycle before scores are shared."
+      }
+    ]
+  },
+  "universalGates": [
+    "Hold next-level scope for at least one full review cycle (scope, autonomy, influence)",
+    "Keep delivery quality reliable with no open critical performance concerns",
+    "Show collaboration, ownership, and knowledge sharing at the next level",
+    "Prepare a short impact packet: outcomes, decisions, and evidence",
+    "Receive lead recommendation and calibration based on evidence, not tenure"
+  ],
+  "assessments": [
+    {
+      "id": 2,
+      "name": "Alireza Dehghan",
+      "username": "ali.dehghan",
+      "period": "Q1 1405",
+      "roleSlug": "backend",
+      "level": 3,
+      "scores": {
+        "be-testing": 4,
+        "be-code": 4,
+        "be-data": 4,
+        "be-design": 4,
+        "be-prod": 4,
+        "be-debug": 4,
+        "sprint-reliability": 3,
+        "flow": 3,
+        "blockers": 3,
+        "dod": 3,
+        "process": 3,
+        "breakdown": 3,
+        "estimation": 3,
+        "predictable": 3,
+        "release-quality": 3,
+        "incidents": 3,
+        "communication": 4,
+        "collaboration": 4,
+        "feedback": 4,
+        "mentoring": 4,
+        "stakeholders": 4,
+        "ownership": 5,
+        "pressure": 5,
+        "learning": 4,
+        "sharing": 4,
+        "self-direction": 4,
+        "career": 4
+      },
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Mid-Level. Mapped to GATE L3.\nSpreadsheet final 3.95 · recomputed from the five scores 3.95.\nBonus recorded: 10%.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Mid-Level",
+        "impact": 4,
+        "execution": 3,
+        "ownership": 5,
+        "collaboration": 4,
+        "growth": 4,
+        "excelFinal": 3.95,
+        "computedFinal": 3.95,
+        "band": "Average",
+        "bonus": 0.1,
+        "incomplete": false,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 3,
+      "name": "Ali Ghasemi",
+      "username": "a.ghasemi",
+      "period": "Q1 1405",
+      "roleSlug": "devops",
+      "level": 3,
+      "scores": {
+        "do-cicd": 3.5,
+        "do-release": 3.5,
+        "do-obs": 3.5,
+        "do-env": 3.5,
+        "do-sec": 3.5,
+        "do-ops": 3.5,
+        "sprint-reliability": 4.5,
+        "flow": 4.5,
+        "blockers": 4.5,
+        "dod": 4.5,
+        "process": 4.5,
+        "breakdown": 4.5,
+        "estimation": 4.5,
+        "predictable": 4.5,
+        "release-quality": 4.5,
+        "incidents": 4.5,
+        "communication": 4,
+        "collaboration": 4,
+        "feedback": 4,
+        "mentoring": 4,
+        "stakeholders": 4,
+        "ownership": 4,
+        "pressure": 4,
+        "learning": 4,
+        "sharing": 4,
+        "self-direction": 4,
+        "career": 4
+      },
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Mid-Level. Mapped to GATE L3.\nSpreadsheet final 3.975 · recomputed from the five scores 3.975.\nBonus recorded: 20%.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Mid-Level",
+        "impact": 3.5,
+        "execution": 4.5,
+        "ownership": 4,
+        "collaboration": 4,
+        "growth": 4,
+        "excelFinal": 3.975,
+        "computedFinal": 3.975,
+        "band": "Strong",
+        "bonus": 0.2,
+        "incomplete": false,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 4,
+      "name": "Abolfazl Pahlavanian",
+      "username": "a.pahlavanian",
+      "period": "Q1 1405",
+      "roleSlug": "devnet",
+      "level": 3,
+      "scores": {
+        "dn-auto": 4,
+        "dn-api": 4,
+        "dn-policy": 4,
+        "dn-net": 4,
+        "dn-tooling": 4,
+        "dn-debug": 4,
+        "sprint-reliability": 4,
+        "flow": 4,
+        "blockers": 4,
+        "dod": 4,
+        "process": 4,
+        "breakdown": 4,
+        "estimation": 4,
+        "predictable": 4,
+        "release-quality": 4,
+        "incidents": 4,
+        "communication": 3.75,
+        "collaboration": 3.75,
+        "feedback": 3.75,
+        "mentoring": 3.75,
+        "stakeholders": 3.75,
+        "ownership": 4.75,
+        "pressure": 4.75,
+        "learning": 5,
+        "sharing": 5,
+        "self-direction": 5,
+        "career": 5
+      },
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Mid-Level. Mapped to GATE L3.\nSpreadsheet final 4.213 · recomputed from the five scores 4.213.\nBonus recorded: 20%.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Mid-Level",
+        "impact": 4,
+        "execution": 4,
+        "ownership": 4.75,
+        "collaboration": 3.75,
+        "growth": 5,
+        "excelFinal": 4.213,
+        "computedFinal": 4.213,
+        "band": "Strong",
+        "bonus": 0.2,
+        "incomplete": false,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 5,
+      "name": "Laya Hosseini Motlagh",
+      "username": "hosseini.motlagh",
+      "period": "Q1 1405",
+      "roleSlug": "qa",
+      "level": 2,
+      "scores": {
+        "qa-design": 4,
+        "qa-release": 4,
+        "qa-defects": 4,
+        "qa-negative": 4,
+        "qa-auto": 4,
+        "qa-risk": 4,
+        "sprint-reliability": 3.5,
+        "flow": 3.5,
+        "blockers": 3.5,
+        "dod": 3.5,
+        "process": 3.5,
+        "breakdown": 3.5,
+        "estimation": 3.5,
+        "predictable": 3.5,
+        "release-quality": 3.5,
+        "incidents": 3.5,
+        "communication": 4,
+        "collaboration": 4,
+        "feedback": 4,
+        "mentoring": 4,
+        "stakeholders": 4,
+        "ownership": 4.5,
+        "pressure": 4.5,
+        "learning": 4,
+        "sharing": 4,
+        "self-direction": 4,
+        "career": 4
+      },
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Junior. Mapped to GATE L2.\nSpreadsheet final 4.1 · recomputed from the five scores 3.975.\nBonus recorded: 20%.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Junior",
+        "impact": 4,
+        "execution": 3.5,
+        "ownership": 4.5,
+        "collaboration": 4,
+        "growth": 4,
+        "excelFinal": 4.1,
+        "computedFinal": 3.975,
+        "band": "Strong",
+        "bonus": 0.2,
+        "incomplete": false,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 6,
+      "name": "Fatemeh Ahmadi",
+      "username": "f.ahmadi",
+      "period": "Q1 1405",
+      "roleSlug": "service",
+      "level": 3,
+      "scores": {
+        "sv-deploy": 4,
+        "sv-trouble": 4,
+        "sv-config": 4,
+        "sv-customer": 4,
+        "sv-escalation": 4,
+        "sv-ops": 4,
+        "sprint-reliability": 3.75,
+        "flow": 3.75,
+        "blockers": 3.75,
+        "dod": 3.75,
+        "process": 3.75,
+        "breakdown": 3.75,
+        "estimation": 3.75,
+        "predictable": 3.75,
+        "release-quality": 3.75,
+        "incidents": 3.75,
+        "communication": 3.5,
+        "collaboration": 3.5,
+        "feedback": 3.5,
+        "mentoring": 3.5,
+        "stakeholders": 3.5,
+        "ownership": 3.75,
+        "pressure": 3.75,
+        "learning": 3.75,
+        "sharing": 3.75,
+        "self-direction": 3.75,
+        "career": 3.75
+      },
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Mid-Level. Mapped to GATE L3.\nSpreadsheet final 3.038 · recomputed from the five scores 3.788.\nBonus recorded: 10%.\nNote: the spreadsheet final (3.04) does not match 4×30% + 3.75×25% + 3.75×20% + 3.5×15% + 3.75×10% = 3.79. Both values are stored.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Mid-Level",
+        "impact": 4,
+        "execution": 3.75,
+        "ownership": 3.75,
+        "collaboration": 3.5,
+        "growth": 3.75,
+        "excelFinal": 3.038,
+        "computedFinal": 3.788,
+        "band": "Average",
+        "bonus": 0.1,
+        "incomplete": false,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 7,
+      "name": "Mohsen Noeiaval",
+      "username": "m.noeiaval",
+      "period": "Q1 1405",
+      "roleSlug": "service",
+      "level": 4,
+      "scores": {},
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Senior. Mapped to GATE L4.\nNo numeric scores in the spreadsheet for this person.\nIncomplete in the original file — kept as an archive stub.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Senior",
+        "impact": null,
+        "execution": null,
+        "ownership": null,
+        "collaboration": null,
+        "growth": null,
+        "excelFinal": null,
+        "computedFinal": null,
+        "band": null,
+        "bonus": 0,
+        "incomplete": true,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    },
+    {
+      "id": 8,
+      "name": "Hamed Dehghan",
+      "username": "hamed.dehghan",
+      "period": "Q1 1405",
+      "roleSlug": "frontend",
+      "level": 3,
+      "scores": {},
+      "notes": "Archived from advanced_team_evaluation.xlsx as Q1 1405.\nOriginal scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).\nJob level in spreadsheet: Mid-Level. Mapped to GATE L3.\nNo numeric scores in the spreadsheet for this person.\nIncomplete in the original file — kept as an archive stub.",
+      "promotion": {},
+      "archived": true,
+      "source": "q1-1405-xlsx",
+      "archive": {
+        "file": "data/archives/q1-1405-advanced_team_evaluation.xlsx",
+        "scheme": "impact-execution-ownership-collaboration-growth",
+        "jobLevel": "Mid-Level",
+        "impact": null,
+        "execution": null,
+        "ownership": null,
+        "collaboration": null,
+        "growth": null,
+        "excelFinal": null,
+        "computedFinal": null,
+        "band": null,
+        "bonus": 0,
+        "incomplete": true,
+        "importedAt": "2026-09-02T08:41:01.363Z"
+      },
+      "createdBy": "m.dehghan",
+      "createdAt": "2026-04-20T13:38:00.000Z",
+      "updatedAt": "2026-09-02T08:41:01.363Z"
+    }
+  ],
+  "nextUserId": 9,
+  "nextAssessmentId": 9
+}
