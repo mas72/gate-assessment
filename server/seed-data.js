@@ -49,11 +49,22 @@ export const TEAM_USERS = [
   },
 ];
 
+// Legacy skill-domain mix (Technical / Agile / Soft / Delivery / Growth).
 export const WEIGHTS = {
   technical: 0.5,
   agile: 0.15,
   soft: 0.15,
   delivery: 0.1,
+  growth: 0.1,
+};
+
+// Headline Final Score: weighted mix of the five parent metrics.
+// Unscored metrics count as 0 and keep their weight (no renormalizing).
+export const FIVE_WEIGHTS = {
+  impact: 0.3,
+  execution: 0.25,
+  ownership: 0.2,
+  collaboration: 0.15,
   growth: 0.1,
 };
 

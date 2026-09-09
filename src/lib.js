@@ -1,3 +1,5 @@
+import { fiveFromSpecScores } from './metric-specs.js';
+
 export async function api(path, options = {}) {
   const res = await fetch(path, {
     credentials: 'include',
@@ -12,6 +14,25 @@ export async function api(path, options = {}) {
     throw err;
   }
   return data;
+}
+
+export async function downloadTeamReportPdf() {
+  const res = await fetch('/api/reports/team.pdf', { credentials: 'include' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const err = new Error(data.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'GATE-team-progress.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export const WEIGHT_LABELS = {
@@ -139,6 +160,77 @@ export const FIVE_METRICS = [
   { key: 'growth', label: 'Growth', weight: 0.1, hint: 'Personal growth' },
 ];
 
+/** Legend for the headline formula. Weights stay as 0.30·Metric (30% in copy is fine). */
+export function finalFormulaText() {
+  return `Final = ${FIVE_METRICS.map((m) => `${m.weight.toFixed(2)}·${m.label}`).join(' + ')}`;
+}
+
+/**
+ * Weighted final from the five parent metrics.
+ * Unscored metrics count as 0 and keep their weight, so one Impact score
+ * cannot become 100% of Final:
+ * final = 0.30·Impact + 0.25·Execution + 0.20·Ownership + 0.15·Collaboration + 0.10·Growth
+ */
+export function finalBreakdown(metrics) {
+  const parts = [];
+  let sum = 0;
+  let any = false;
+  for (const m of FIVE_METRICS) {
+    const v = metrics?.[m.key];
+    const included = typeof v === 'number' && Number.isFinite(v);
+    if (included) {
+      sum += v * m.weight;
+      any = true;
+    }
+    parts.push({
+      ...m,
+      value: included ? v : null,
+      included,
+      contribution: included ? v * m.weight : 0,
+    });
+  }
+  return {
+    value: any ? Math.round(sum * 1000) / 1000 : null,
+    weightUsed: 1,
+    parts,
+  };
+}
+
+/** Extra names used on Q1 archive rows that differ from login display names. */
+export const USER_ALIASES = {
+  'ali.dehghan': ['Alireza Dehghan', 'Ali Dehghan'],
+  'a.ghasemi': ['Ali Ghasemi', 'A. Ghasemi'],
+  'f.ahmadi': ['Fatemeh Ahmadi', 'F. Ahmadi'],
+  'a.pahlavanian': ['Abolfazl Pahlavanian', 'A. Pahlavanian'],
+  'hamed.dehghan': ['Hamed Dehghan'],
+  'hosseini.motlagh': ['Laya Hosseini Motlagh', 'Hosseini Motlagh'],
+  'm.noeiaval': ['Mohsen Noeiaval', 'M. Noeiaval'],
+  'm.dehghan': ['Masoud Dehghan'],
+};
+
+export const PERIOD_YEAR = '1405';
+export const CURRENT_PERIOD = `Q2 ${PERIOD_YEAR}`;
+
+export function identityKeys(user) {
+  const username = String(user?.username || '').trim().toLowerCase();
+  const aliases = USER_ALIASES[username] || [];
+  return [user?.username, user?.displayName, ...aliases]
+    .map((s) => String(s || '').trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function belongsToUser(record, user) {
+  if (!user) return false;
+  if (user.access === 'admin' || user.isAdmin) return true;
+  const keys = new Set(identityKeys(user));
+  const username = String(record?.username || '').trim().toLowerCase();
+  const name = String(record?.name || '').trim().toLowerCase();
+  const person = String(record?.personKey || '').trim().toLowerCase();
+  return (username && keys.has(username))
+    || (name && keys.has(name))
+    || (person && keys.has(person));
+}
+
 const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 
@@ -151,14 +243,19 @@ export function normalizePeriod(raw) {
   if (glued) return `Q${glued[1]} ${glued[2]}`;
   const spaced = s.match(/^Q\s*(\d+)\s+(\d{4})$/i);
   if (spaced) return `Q${spaced[1]} ${spaced[2]}`;
+  const bare = s.match(/^Q\s*(\d+)$/i);
+  if (bare) return `Q${bare[1]} ${PERIOD_YEAR}`;
   return s;
 }
 
 export function periodSortKey(raw) {
   const s = normalizePeriod(raw);
-  const m = s.match(/^Q(\d+)\s+(\d+)$/i);
-  if (!m) return [0, 0, s];
-  return [Number(m[2]), Number(m[1]), s];
+  if (/^in progress$/i.test(s)) return [9999, 9, s];
+  const dated = s.match(/^Q(\d+)\s+(\d+)$/i);
+  if (dated) return [Number(dated[2]), Number(dated[1]), s];
+  const bare = s.match(/^Q(\d+)$/i);
+  if (bare) return [9998, Number(bare[1]), s];
+  return [0, 0, s];
 }
 
 export function fiveFromRecord(record) {
@@ -175,22 +272,107 @@ export function fiveFromRecord(record) {
 }
 
 export function finalFromFive(metrics, fallback) {
-  if (!metrics) return fallback ?? null;
-  let sum = 0;
-  let weight = 0;
-  for (const m of FIVE_METRICS) {
-    const v = metrics[m.key];
-    if (typeof v === 'number') {
-      sum += v * m.weight;
-      weight += m.weight;
-    }
-  }
-  if (!weight) return fallback ?? null;
-  return Math.round((sum / weight) * 1000) / 1000;
+  const value = finalBreakdown(metrics).value;
+  if (value == null) return fallback ?? null;
+  return value;
 }
 
-function personKey(record) {
-  return String(record.username || record.name || '').trim().toLowerCase();
+export function personKey(record) {
+  return String(record?.username || record?.name || '').trim().toLowerCase();
+}
+
+/** Map a 1–7 score onto the matching career level (L1~1 … L7~7). */
+export function levelFromScore(score) {
+  if (score == null || !Number.isFinite(Number(score))) return null;
+  return Math.min(7, Math.max(1, Math.round(Number(score))));
+}
+
+export function hasFive(metrics) {
+  return Boolean(metrics && FIVE_METRICS.some((m) => typeof metrics[m.key] === 'number'));
+}
+
+const OWNERSHIP_SKILL_IDS = new Set(['ownership', 'pressure']);
+
+function avgOfMetrics(metrics, scores) {
+  const values = (metrics || [])
+    .map((m) => scores?.[m.id])
+    .filter((v) => typeof v === 'number' && Number.isFinite(v));
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+
+/** Derive the five main metrics from the skill-domain scores. */
+export function fiveFromSkillScores(catalog, roleSlug, scores) {
+  if (!catalog || !scores) return null;
+  const role = catalog.roles.find((r) => r.slug === roleSlug) || catalog.roles[0];
+  const byKey = Object.fromEntries((catalog.sharedDomains || []).map((d) => [d.weightKey, d]));
+  const agile = byKey.agile?.metrics || [];
+  const delivery = byKey.delivery?.metrics || [];
+  const soft = byKey.soft?.metrics || [];
+  const growth = byKey.growth?.metrics || [];
+  const own = soft.filter((m) => OWNERSHIP_SKILL_IDS.has(m.id));
+  const collab = soft.filter((m) => !OWNERSHIP_SKILL_IDS.has(m.id));
+  const out = {
+    impact: avgOfMetrics(role?.metrics, scores),
+    execution: avgOfMetrics([...agile, ...delivery], scores),
+    ownership: avgOfMetrics(own, scores),
+    collaboration: avgOfMetrics(collab, scores),
+    growth: avgOfMetrics(growth, scores),
+  };
+  return hasFive(out) ? out : null;
+}
+
+export function resolveFiveMetrics({
+  metrics,
+  archive,
+  catalog,
+  roleSlug,
+  scores,
+  specScores,
+  employeeSpecs,
+  archived,
+}) {
+  if (archived && archive) {
+    const fromArchive = fiveFromRecord({ archive });
+    if (fromArchive) return fromArchive;
+  }
+  const fromSpecs = fiveFromSpecScores(employeeSpecs, specScores);
+  if (fromSpecs) return fromSpecs;
+  if (hasFive(metrics)) {
+    const out = {};
+    for (const m of FIVE_METRICS) {
+      const v = metrics[m.key];
+      out[m.key] = typeof v === 'number' && Number.isFinite(v) ? v : null;
+    }
+    return out;
+  }
+  const fromArchive = fiveFromRecord({ archive });
+  if (fromArchive) return fromArchive;
+  return fiveFromSkillScores(catalog, roleSlug, scores);
+}
+
+function isNewerPeriod(a, b) {
+  const [ay, aq] = periodSortKey(a);
+  const [by, bq] = periodSortKey(b);
+  if (ay !== by) return ay > by;
+  if (aq !== bq) return aq > bq;
+  return false;
+}
+
+export function latestByPerson(records) {
+  const map = new Map();
+  for (const r of records || []) {
+    const key = personKey(r);
+    if (!key) continue;
+    const prev = map.get(key);
+    if (!prev || isNewerPeriod(r.period, prev.period)) map.set(key, r);
+  }
+  return map;
+}
+
+export function peopleForRole(records, roleSlug) {
+  const latest = latestByPerson((records || []).filter((r) => r.roleSlug === roleSlug));
+  return [...latest.values()].sort((a, b) => String(a.name).localeCompare(String(b.name)));
 }
 
 function avgMetrics(rows) {
@@ -205,7 +387,7 @@ function avgMetrics(rows) {
 export function buildEvaluation(records) {
   const rows = (records || []).map((r) => {
     const metrics = fiveFromRecord(r);
-    const finalScore = r.finalScore ?? finalFromFive(metrics, r.archive?.computedFinal ?? r.archive?.excelFinal);
+    const finalScore = finalFromFive(metrics) ?? (typeof r.finalScore === 'number' ? r.finalScore : null);
     return {
       ...r,
       period: normalizePeriod(r.period),
@@ -213,7 +395,7 @@ export function buildEvaluation(records) {
       finalScore,
       key: personKey(r),
     };
-  });
+  }).filter((r) => r.key);
 
   const periods = [...new Set(rows.map((r) => r.period).filter(Boolean))].sort((a, b) => {
     const [ay, aq] = periodSortKey(a);
@@ -222,27 +404,54 @@ export function buildEvaluation(records) {
   });
 
   const latest = periods[periods.length - 1] || '';
-  const previous = periods.length > 1 ? periods[periods.length - 2] : '';
+  const q1Period = periods.find((p) => /^Q1\s+1405$/i.test(p)) || '';
+  const previous = latest && q1Period && latest !== q1Period
+    ? q1Period
+    : (periods.length > 1 ? periods[periods.length - 2] : '');
+
+  const byKey = new Map();
+  for (const r of rows) {
+    const list = byKey.get(r.key) || [];
+    list.push(r);
+    byKey.set(r.key, list);
+  }
+
+  const people = [...byKey.values()].map((list) => {
+    list.sort((a, b) => {
+      const [ay, aq] = periodSortKey(a.period);
+      const [by, bq] = periodSortKey(b.period);
+      return ay - by || aq - bq;
+    });
+    const baseline = (q1Period && list.find((r) => r.period === q1Period)) || list[0];
+    const now = list[list.length - 1];
+    const hasLater = Boolean(now && baseline && now.period !== baseline.period);
+    const latestMetrics = now?.metrics || null;
+    const previousMetrics = hasLater ? (baseline?.metrics || null) : null;
+    const latestFinal = now?.finalScore ?? finalFromFive(latestMetrics);
+    const previousFinal = hasLater
+      ? (baseline?.finalScore ?? finalFromFive(previousMetrics))
+      : null;
+    return {
+      name: now?.name || baseline?.name,
+      username: now?.username || baseline?.username || null,
+      roleSlug: now?.roleSlug || baseline?.roleSlug,
+      level: now?.level || baseline?.level,
+      latestPeriod: now?.period || '',
+      previousPeriod: hasLater ? baseline.period : '',
+      onlyBaseline: !hasLater,
+      incomplete: !latestMetrics && !previousMetrics,
+      latest: latestMetrics,
+      previous: previousMetrics,
+      latestFinal,
+      previousFinal,
+      delta: latestFinal != null && previousFinal != null ? latestFinal - previousFinal : null,
+      notes: now?.notes || '',
+      evidence: now?.evidence || '',
+    };
+  }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
   const latestRows = rows.filter((r) => r.period === latest && r.metrics);
   const prevRows = previous ? rows.filter((r) => r.period === previous && r.metrics) : [];
-  const prevByKey = new Map(prevRows.map((r) => [r.key, r]));
-
-  const people = latestRows
-    .map((now) => {
-      const before = prevByKey.get(now.key);
-      return {
-        name: now.name,
-        roleSlug: now.roleSlug,
-        level: now.level,
-        latest: now.metrics,
-        previous: before?.metrics || null,
-        latestFinal: now.finalScore,
-        previousFinal: before?.finalScore ?? null,
-        delta: now.finalScore != null && before?.finalScore != null ? now.finalScore - before.finalScore : null,
-      };
-    })
-    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
-
   const teamLatest = avgMetrics(latestRows);
   const teamPrevious = avgMetrics(prevRows);
   const teamLatestFinal = finalFromFive(teamLatest);
@@ -251,7 +460,9 @@ export function buildEvaluation(records) {
   return {
     latest,
     previous,
+    q1Period,
     people,
+    scoredCount: people.filter((p) => !p.incomplete).length,
     teamLatest,
     teamPrevious,
     teamLatestFinal,

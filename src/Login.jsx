@@ -65,7 +65,7 @@ export default function Login({ onLogin }) {
         </button>
 
         <p className="hint" title="Contact the GATE engineering manager if you cannot sign in.">
-          Use your GATE username. Team members can browse rubrics and saved scorecards; scoring and role edits are
+          Use your GATE username. After you sign in you only see your own reviews. Scoring and role edits are
           manager-only. If you cannot sign in, ask the engineering manager for a password reset.
         </p>
       </form>

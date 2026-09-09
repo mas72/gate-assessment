@@ -14,14 +14,19 @@ import {
   findUserById,
   findUserByUsername,
   getAssessment,
+  getEmployeeSpecs,
   listAssessments,
+  personVisibleTo,
   publicConfig,
   publicUser,
+  recordVisibleTo,
   saveAssessment,
+  saveEmployeeSpecs,
   setPasswordHash,
   updateAssessment,
   updateRole,
 } from './store.js';
+import { generateTeamPdfBuffer, teamPdfFallbackPath } from './team-pdf.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,7 +79,7 @@ function setSessionCookie(res, sessionId) {
   res.cookie(COOKIE, `${sessionId}.${sign(sessionId)}`, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProd,
+    secure: isProd && process.env.HTTPS === 'true',
     path: '/',
     maxAge: 14 * 24 * 60 * 60 * 1000,
   });
@@ -154,13 +159,33 @@ app.get('/api/catalog', requireAuth, (_req, res) => {
   res.json(catalog());
 });
 
-app.get('/api/assessments', requireAuth, (_req, res) => {
-  res.json({ assessments: listAssessments() });
+app.get('/api/specs', requireAuth, (req, res) => {
+  const person = String(req.query.person || '').trim();
+  if (!person) return res.status(400).json({ error: 'person is required' });
+  if (!personVisibleTo(person, req.user)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  res.json({ specs: getEmployeeSpecs(person, req.query.role) });
+});
+
+app.put('/api/specs', requireAuth, requireAdmin, (req, res) => {
+  const person = String(req.body?.person || req.query.person || '').trim();
+  try {
+    res.json({ specs: saveEmployeeSpecs(person, req.body || {}) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/assessments', requireAuth, (req, res) => {
+  res.json({ assessments: listAssessments(req.user) });
 });
 
 app.get('/api/assessments/:id', requireAuth, (req, res) => {
   const assessment = getAssessment(req.params.id);
-  if (!assessment) return res.status(404).json({ error: 'Not found' });
+  if (!assessment || !recordVisibleTo(assessment, req.user)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
   res.json({ assessment });
 });
 
@@ -203,6 +228,30 @@ app.delete('/api/roles/:id', requireAuth, requireAdmin, (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/reports/team.pdf', requireAuth, requireAdmin, (_req, res) => {
+  const sendPdf = (buf) => {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="GATE-team-progress.pdf"');
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(buf);
+  };
+  try {
+    sendPdf(generateTeamPdfBuffer());
+  } catch (err) {
+    console.error('team PDF generation failed:', err);
+    const fallback = teamPdfFallbackPath();
+    if (fallback) {
+      try {
+        sendPdf(fs.readFileSync(fallback));
+        return;
+      } catch (readErr) {
+        console.error('team PDF fallback read failed:', readErr);
+      }
+    }
+    res.status(500).json({ error: err.message || 'Could not generate team report' });
   }
 });
 

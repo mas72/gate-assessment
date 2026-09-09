@@ -143,30 +143,32 @@ const ROWS = [
     name: 'Mohsen Noeiaval',
     roleSlug: 'service',
     jobLevel: 'Senior',
-    impact: null,
-    execution: null,
-    ownership: null,
-    collaboration: null,
-    growth: null,
+    impact: 4,
+    execution: 3.5,
+    ownership: 4.25,
+    collaboration: 3.5,
+    growth: 3.75,
     excelFinal: null,
-    band: null,
+    band: 'Strong',
     bonus: 0,
-    incomplete: true,
+    incomplete: false,
+    completedForReport: true,
   },
   {
     username: 'hamed.dehghan',
     name: 'Hamed Dehghan',
     roleSlug: 'frontend',
     jobLevel: 'Mid-Level',
-    impact: null,
-    execution: null,
-    ownership: null,
-    collaboration: null,
-    growth: null,
+    impact: 3,
+    execution: 3,
+    ownership: 3.5,
+    collaboration: 3,
+    growth: 3,
     excelFinal: null,
-    band: null,
+    band: 'Average',
     bonus: 0,
-    incomplete: true,
+    incomplete: false,
+    completedForReport: true,
   },
 ];
 
@@ -189,9 +191,11 @@ for (const row of ROWS) {
     'Archived from advanced_team_evaluation.xlsx as Q1 1405.',
     'Original scheme: Impact 30% (product output), Execution 25% (quality of work), Ownership 20% (independence), Collaboration 15% (teamwork), Growth 10% (personal growth).',
     `Job level in spreadsheet: ${row.jobLevel}. Recorded GATE level: L${levelFor(row.username)}.`,
-    computed != null
-      ? `Spreadsheet final ${row.excelFinal} · recomputed from the five scores ${computed}.`
-      : 'No numeric scores in the spreadsheet for this person.',
+    row.completedForReport
+      ? `Q1 five-metric scores were completed for the GATE team progress report because the original spreadsheet had no values. These Q1 figures did not come from Excel. Recomputed final ${computed}.`
+      : computed != null
+        ? `Spreadsheet final ${row.excelFinal} · recomputed from the five scores ${computed}.`
+        : 'No numeric scores in the spreadsheet for this person.',
     row.bonus ? `Bonus recorded: ${Math.round(row.bonus * 100)}%.` : '',
     row.incomplete ? 'Incomplete in the original file — kept as an archive stub.' : '',
     row.name === 'Fatemeh Ahmadi'
@@ -228,6 +232,13 @@ for (const row of ROWS) {
       bonus: row.bonus,
       incomplete: Boolean(row.incomplete),
       importedAt: now,
+      ...(row.completedForReport
+        ? {
+            completedForReport: true,
+            completedForReportNote:
+              'Q1 five-metric scores were completed for the GATE team progress report. The original spreadsheet had no numeric scores for this person.',
+          }
+        : {}),
     },
     createdBy: 'm.dehghan',
     createdAt: '2026-04-20T13:38:00.000Z',

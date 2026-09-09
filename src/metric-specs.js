@@ -24,15 +24,39 @@ export const RAMP_LABELS = {
   late: 'Leadership — unlocks at senior levels',
 };
 
+export const METRIC_KEYS = ['impact', 'execution', 'ownership', 'collaboration', 'growth'];
+
+function clampScore(n, fallback) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return fallback;
+  return Math.min(7, Math.max(1, v));
+}
+
+function parseBand(row) {
+  if (Array.isArray(row) && row.length >= 2) {
+    const min = clampScore(row[0], 1);
+    const max = clampScore(row[1], 7);
+    return { min: Math.min(min, max), max: Math.max(min, max) };
+  }
+  if (row && typeof row === 'object') {
+    const min = clampScore(row.min, 1);
+    const max = clampScore(row.max, 7);
+    return { min: Math.min(min, max), max: Math.max(min, max) };
+  }
+  return null;
+}
+
 export function bandFor(spec, level) {
-  const rows = RAMPS[spec.ramp] || RAMPS.standard;
   const lv = Math.min(7, Math.max(1, Number(level) || 1));
+  const custom = Array.isArray(spec?.bands) ? parseBand(spec.bands[lv - 1]) : null;
+  if (custom) return custom;
+  const rows = RAMPS[spec?.ramp] || RAMPS.standard;
   const [min, max] = rows[lv - 1];
   return { min, max };
 }
 
 export function allBands(spec) {
-  return (RAMPS[spec.ramp] || RAMPS.standard).map(([min, max], i) => ({ level: i + 1, min, max }));
+  return [1, 2, 3, 4, 5, 6, 7].map((level) => ({ level, ...bandFor(spec, level) }));
 }
 
 export function bandVerdict(spec, level, value) {
@@ -257,3 +281,133 @@ export const METRIC_SPECS = [
 ];
 
 export const METRIC_SPEC_BY_KEY = Object.fromEntries(METRIC_SPECS.map((m) => [m.key, m]));
+
+function slugId(raw, fallback) {
+  const id = String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+  return id || fallback;
+}
+
+export function cloneDefaultSpecs(roleSlug) {
+  return METRIC_SPECS.map((metric) => ({
+    key: metric.key,
+    label: metric.label,
+    weight: metric.weight,
+    question: metric.question,
+    basis: metric.basis,
+    specs: metric.specs.map((spec) => ({
+      id: spec.id,
+      title: spec.title,
+      ramp: spec.ramp || 'standard',
+      weight: 1,
+      what: spec.what,
+      evidence: spec.evidence,
+      roleNote: spec.byRole?.[roleSlug] || '',
+    })),
+  }));
+}
+
+function normalizeBands(bands) {
+  if (!Array.isArray(bands) || bands.length !== 7) return null;
+  const rows = bands.map(parseBand);
+  if (rows.some((r) => !r)) return null;
+  return rows.map((r) => [r.min, r.max]);
+}
+
+export function normalizeSpecCatalog(metrics, roleSlug) {
+  const fallback = cloneDefaultSpecs(roleSlug);
+  const src = Array.isArray(metrics) ? metrics : [];
+  const used = new Set();
+  return fallback.map((base) => {
+    const incoming = src.find((m) => m && m.key === base.key) || {};
+    const rawSpecs = Array.isArray(incoming.specs) && incoming.specs.length ? incoming.specs : base.specs;
+    const specs = rawSpecs.map((spec, i) => {
+      const fallbackSpec = base.specs[i] || base.specs[0];
+      let id = slugId(spec.id || spec.title, `${base.key}-p${i + 1}`);
+      if (used.has(id)) id = `${id}-${i + 1}`;
+      used.add(id);
+      const weight = Number(spec.weight);
+      const bands = normalizeBands(spec.bands);
+      const ramp = ['early', 'standard', 'late'].includes(spec.ramp) ? spec.ramp : fallbackSpec?.ramp || 'standard';
+      return {
+        id,
+        title: String(spec.title || fallbackSpec?.title || `Parameter ${i + 1}`).trim(),
+        ramp,
+        weight: Number.isFinite(weight) && weight > 0 ? weight : 1,
+        what: String(spec.what ?? fallbackSpec?.what ?? '').trim(),
+        evidence: String(spec.evidence ?? fallbackSpec?.evidence ?? '').trim(),
+        roleNote: String(spec.roleNote ?? fallbackSpec?.roleNote ?? '').trim(),
+        ...(bands ? { bands } : {}),
+      };
+    });
+    return {
+      key: base.key,
+      label: base.label,
+      weight: base.weight,
+      question: String(incoming.question || base.question),
+      basis: String(incoming.basis || base.basis),
+      specs: specs.length ? specs : base.specs,
+    };
+  });
+}
+
+export function emptyEmployeeSpecs(personKey, roleSlug) {
+  return {
+    personKey: String(personKey || '').trim().toLowerCase(),
+    roleSlug: roleSlug || 'backend',
+    metrics: cloneDefaultSpecs(roleSlug),
+    fromDefaults: true,
+  };
+}
+
+function round3(n) {
+  return Math.round(n * 1000) / 1000;
+}
+
+/** Weighted average of scored parameters for one parent metric. Unscored params are skipped. */
+export function rollupMetric(metric, specScores) {
+  if (!metric?.specs?.length || !specScores) return null;
+  let sum = 0;
+  let weight = 0;
+  for (const spec of metric.specs) {
+    const value = specScores[spec.id];
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue;
+    const w = Number(spec.weight) > 0 ? Number(spec.weight) : 1;
+    sum += value * w;
+    weight += w;
+  }
+  if (!weight) return null;
+  return round3(sum / weight);
+}
+
+export function fiveFromSpecScores(employeeSpecs, specScores) {
+  const metrics = Array.isArray(employeeSpecs) ? employeeSpecs : employeeSpecs?.metrics;
+  if (!metrics?.length || !specScores || typeof specScores !== 'object') return null;
+  const out = {};
+  let any = false;
+  for (const metric of metrics) {
+    const value = rollupMetric(metric, specScores);
+    out[metric.key] = value;
+    if (value != null) any = true;
+  }
+  return any ? out : null;
+}
+
+export function rollupHint(metric, specScores) {
+  const specs = metric?.specs || [];
+  const scored = specs.filter((s) => typeof specScores?.[s.id] === 'number');
+  if (!specs.length) return 'No parameters';
+  const equal = specs.every((s) => (Number(s.weight) > 0 ? Number(s.weight) : 1) === (Number(specs[0].weight) > 0 ? Number(specs[0].weight) : 1));
+  const kind = equal ? 'Average' : 'Weighted average';
+  if (!scored.length) return `${kind} of this metric's parameters — none scored yet`;
+  return `${kind} of ${scored.length} of ${specs.length} parameters`;
+}
+
+export function specIds(employeeSpecs) {
+  const metrics = Array.isArray(employeeSpecs) ? employeeSpecs : employeeSpecs?.metrics || [];
+  return metrics.flatMap((m) => (m.specs || []).map((s) => s.id));
+}

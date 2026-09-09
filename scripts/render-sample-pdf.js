@@ -2,7 +2,7 @@
 // Usage: node scripts/render-sample-pdf.js <assessmentId> [outFile]
 import { writeFileSync } from 'node:fs';
 import { buildPdf } from '../src/pdf.js';
-import { catalog as getCatalog, getAssessment } from '../server/store.js';
+import { catalog as getCatalog, getAssessment, getEmployeeSpecs } from '../server/store.js';
 
 const id = Number(process.argv[2] || 1);
 const out = process.argv[3] || `/tmp/gate-sample-${id}.pdf`;
@@ -13,6 +13,8 @@ if (!a) {
   console.error(`No assessment with id ${id}`);
   process.exit(1);
 }
+
+const employeeSpecs = getEmployeeSpecs(a.username || a.name, a.roleSlug);
 
 const doc = buildPdf({
   catalog,
@@ -25,6 +27,9 @@ const doc = buildPdf({
   promotion: a.promotion || {},
   archive: a.archive || null,
   reviewer: 'Masoud Dehghan',
+  specScores: a.specScores || {},
+  employeeSpecs,
+  metrics: a.metrics,
 });
 
 writeFileSync(out, Buffer.from(doc.output('arraybuffer')));

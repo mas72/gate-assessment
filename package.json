@@ -11,10 +11,13 @@
     "start": "NODE_ENV=production node server/index.js"
   },
   "dependencies": {
+    "arabic-persian-reshaper": "^1.0.1",
     "bcryptjs": "^2.4.3",
+    "bidi-js": "^1.0.3",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
     "jspdf": "^2.5.2",
+    "opentype.js": "^2.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.15.1"
