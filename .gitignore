@@ -3,5 +3,7 @@ dist
 .DS_Store
 *.local
 .env
+certs/
+.bin/
 data/store.json
 data/*.bak

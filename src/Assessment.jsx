@@ -44,6 +44,14 @@ function isPersistedAssessment(item) {
   return Number.isInteger(id) && id > 0;
 }
 
+function sortByPeriodAsc(items) {
+  return [...items].sort((a, b) => {
+    const [ay, aq] = periodSortKey(a.period);
+    const [by, bq] = periodSortKey(b.period);
+    return ay - by || aq - bq;
+  });
+}
+
 function scoreBtnClass(value, n, current) {
   const scored = typeof value === 'number' && Number.isFinite(value);
   const active = scored && (value === n || Math.round(value) === n);
@@ -137,25 +145,11 @@ function ArchiveCard({ archive }) {
   );
 }
 
-function TeamReport({ saved, onError }) {
+function TeamReport({ saved, onDownload, busy }) {
   const evaln = useMemo(() => buildEvaluation(saved), [saved]);
-  const [busy, setBusy] = useState(false);
-  if (!evaln.latest) return null;
-
   const hasPrior = Boolean(evaln.previous);
   const n = evaln.people.length;
   const scored = evaln.scoredCount ?? n;
-
-  async function download() {
-    setBusy(true);
-    try {
-      await downloadTeamReportPdf();
-    } catch (err) {
-      onError?.(err.message || 'Could not download team report');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <section className="card eval-card">
@@ -165,12 +159,14 @@ function TeamReport({ saved, onError }) {
           <p className="muted">
             {n} employees
             {scored !== n ? ` · ${scored} scored` : ''}
-            {hasPrior
-              ? ` · ${evaln.latest} vs ${evaln.previous} · ${finalFormulaText()}`
-              : ` · ${evaln.latest} · ${finalFormulaText()} (no later quarter yet)`}
+            {evaln.latest
+              ? hasPrior
+                ? ` · ${evaln.latest} vs ${evaln.previous} · ${finalFormulaText()}`
+                : ` · ${evaln.latest} · ${finalFormulaText()}`
+              : ` · ${finalFormulaText()}`}
           </p>
         </div>
-        <button type="button" className="btn btn-pdf" disabled={busy} onClick={download}>
+        <button type="button" className="btn btn-pdf" disabled={busy} onClick={onDownload}>
           {busy ? 'Preparing PDF…' : 'Team report PDF'}
         </button>
       </div>
@@ -308,101 +304,149 @@ function withLivePreview(saved, live) {
   return [...rest, synthetic];
 }
 
-function SavedPanel({ saved, activeId, readOnly, onOpen, onNew, onDelete }) {
+function roleLabelFor(roles, slug) {
+  return roles.find((r) => r.slug === slug)?.label || slug || '';
+}
+
+function ArchivesPanel({ saved, activeId, readOnly, roleFilter, roles, onRoleFilter, onOpen, onNew, onDelete }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(true);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = saved.filter((a) => {
-      if (!q) return true;
-      return `${a.name} ${a.period} ${a.roleSlug}`.toLowerCase().includes(q);
-    });
-    const map = new Map();
-    for (const a of filtered) {
-      const key = normalizePeriod(a.period) || 'No period';
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(a);
+    const byPerson = new Map();
+    for (const a of saved) {
+      const key = personKey(a) || `id:${a.id}`;
+      if (!byPerson.has(key)) byPerson.set(key, []);
+      byPerson.get(key).push(a);
     }
-    return [...map.entries()].sort((a, b) => {
-      const [ay, aq] = periodSortKey(a[0]);
-      const [by, bq] = periodSortKey(b[0]);
-      return by - ay || bq - aq;
-    });
-  }, [saved, query]);
 
-  const periodLabel = groups.length === 1 ? groups[0][0] : '';
+    const out = [];
+    for (const [key, items] of byPerson) {
+      const reviews = [...items].sort((a, b) => {
+        const [ay, aq] = periodSortKey(a.period);
+        const [by, bq] = periodSortKey(b.period);
+        return by - ay || bq - aq;
+      });
+      const latest = reviews[0];
+      const roleLabel = roleLabelFor(roles, latest.roleSlug);
+      const personHay = `${latest.name || ''} ${latest.username || ''} ${roleLabel} ${latest.roleSlug || ''}`.toLowerCase();
+      const personMatch = !q || personHay.includes(q);
+      const visible = personMatch
+        ? reviews
+        : reviews.filter((a) => String(a.period || '').toLowerCase().includes(q));
+      if (!visible.length) continue;
+      out.push({
+        key,
+        name: latest.name || latest.username || 'Untitled',
+        roleLabel,
+        level: latest.level,
+        reviews: visible,
+      });
+    }
+
+    return out.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  }, [saved, query, roles]);
+
+  const personLabel = groups.length === 1 ? groups[0].name : '';
 
   return (
-    <section className={`saved ${open ? 'open' : ''}`}>
-      <button type="button" className="saved-toggle" onClick={() => setOpen((s) => !s)}>
-        <span className="caret">{open ? '▾' : '▸'}</span>
-        Archives
-        <span className="count">{saved.length}</span>
-        {periodLabel && <span className="muted">· {periodLabel}</span>}
-        {!open && activeId != null && (
-          <span className="muted">· viewing {saved.find((a) => a.id === activeId)?.name || 'review'}</span>
-        )}
-      </button>
-
-      {open && (
-        <div className="saved-body">
-          <div className="saved-tools">
-            <input
-              className="search"
-              value={query}
-              placeholder="Search by name, period, or role…"
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {!readOnly && (
-              <button type="button" className="btn btn-ghost" onClick={onNew}>
-                + New review
-              </button>
-            )}
-          </div>
-          {groups.length === 0 && (
-            <p className="muted">{query ? `No reviews match “${query}”.` : 'No archived reviews yet.'}</p>
+    <aside className="pane-left" aria-label="Archives">
+      <section className={`saved ${open ? 'open' : ''}`}>
+        <button type="button" className="saved-toggle" onClick={() => setOpen((s) => !s)}>
+          <span className="caret">{open ? '▾' : '▸'}</span>
+          Archives
+          <span className="count">{saved.length}</span>
+          {personLabel && <span className="muted">· {personLabel}</span>}
+          {!open && activeId != null && (
+            <span className="muted">· viewing {saved.find((a) => String(a.id) === String(activeId))?.name || 'review'}</span>
           )}
-          {groups.map(([period, items]) => (
-            <div className="saved-group" key={period}>
-              {groups.length > 1 && <div className="row-label">{period}</div>}
-              <div className="saved-list">
-                {items.map((a) => {
-                  const canDelete = !readOnly && isPersistedAssessment(a);
-                  return (
-                    <div key={a.id} className={`chip-wrap ${activeId === a.id ? 'active' : ''}`}>
-                      <button
-                        type="button"
-                        className={`chip ${activeId === a.id ? 'active' : ''}`}
-                        onClick={() => onOpen(a.id)}
-                      >
-                        {a.name || 'Untitled'}
-                        <em>L{a.level}</em>
-                        {a.archived && <span className="tag">Archive</span>}
-                      </button>
-                      {canDelete && (
+        </button>
+
+        {open && (
+          <div className="saved-body">
+            {!readOnly && roles.length > 1 && (
+              <label className="pane-filter">
+                <span>Role</span>
+                <select
+                  value={roleFilter}
+                  aria-label="Filter by role"
+                  onChange={(e) => onRoleFilter(e.target.value)}
+                >
+                  <option value="">All roles</option>
+                  {roles.map((r) => (
+                    <option key={r.slug} value={r.slug}>{r.label}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <div className="saved-tools">
+              <input
+                className="search"
+                value={query}
+                placeholder="Search by name, period, or role…"
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              {!readOnly && (
+                <button type="button" className="btn btn-ghost" onClick={onNew}>
+                  + New review
+                </button>
+              )}
+            </div>
+            {groups.length === 0 && (
+              <p className="muted">{query ? `No reviews match “${query}”.` : 'No archived reviews yet.'}</p>
+            )}
+            {groups.map((group) => (
+              <div className="saved-group pane-group" key={group.key}>
+                <div className="pane-group-name">
+                  <span className="pane-person">{group.name}</span>
+                  <span className="pane-person-meta">
+                    {[group.roleLabel, group.level != null && group.level !== '' ? `L${group.level}` : null]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
+                <div className="saved-list">
+                  {group.reviews.map((a) => {
+                    const selected = String(a.id) === String(activeId);
+                    const canDelete = !readOnly && isPersistedAssessment(a);
+                    const period = normalizePeriod(a.period) || a.period || 'No period';
+                    return (
+                      <div key={a.id} className={`pane-row ${selected ? 'is-selected' : ''}`}>
                         <button
                           type="button"
-                          className="chip-delete"
-                          title={`Delete ${a.name || 'assessment'}`}
-                          aria-label={`Delete ${a.name || 'assessment'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete?.(a);
-                          }}
+                          className="pane-row-main"
+                          onClick={() => onOpen(a.id)}
                         >
-                          ×
+                          <span className="pane-period">{period}</span>
+                          <span className="pane-meta">
+                            {a.archived ? 'Archive' : 'Review'}
+                          </span>
                         </button>
-                      )}
-                    </div>
-                  );
-                })}
+                        {canDelete && (
+                          <button
+                            type="button"
+                            className="pane-del"
+                            title={`Delete ${a.name || 'assessment'} ${period}`}
+                            aria-label={`Delete ${a.name || 'assessment'} ${period}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete?.(a);
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
+            ))}
+          </div>
+        )}
+      </section>
+    </aside>
   );
 }
 
@@ -432,6 +476,8 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
   const [archive, setArchive] = useState(null);
   const [saved, setSaved] = useState([]);
   const [toast, setToast] = useState(null);
+  const [teamBusy, setTeamBusy] = useState(false);
+  const [listRole, setListRole] = useState('');
 
   const scoringLocked = readOnly || Boolean(archive) || !editing;
   const visibleSaved = useMemo(
@@ -562,18 +608,16 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
   }, []);
 
   useEffect(() => {
-    if (!readOnly || autoloaded.current) return;
+    if (autoloaded.current) return;
     if (!visibleSaved.length) {
-      setName(user.displayName || '');
-      setUsername(user.username);
+      if (readOnly) {
+        setName(user.displayName || '');
+        setUsername(user.username);
+      }
       return;
     }
     autoloaded.current = true;
-    const sorted = [...visibleSaved].sort((a, b) => {
-      const ka = periodSortKey(a.period);
-      const kb = periodSortKey(b.period);
-      return ka[0] - kb[0] || ka[1] - kb[1];
-    });
+    const sorted = sortByPeriodAsc(visibleSaved);
     const latest = sorted[sorted.length - 1];
     if (latest?.roleSlug) setRoleSlug(latest.roleSlug);
     if (latest?.id) loadSaved(latest.id);
@@ -650,7 +694,7 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
     }
   }
 
-  async function loadSaved(id) {
+  async function loadSaved(id, opts = {}) {
     try {
       const data = await api(`/api/assessments/${id}`);
       const a = data.assessment;
@@ -683,10 +727,29 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
       setNotes(a.notes || '');
       setPromotion(a.promotion || {});
       setArchive(a.archive || null);
-      setTab('overview');
+      if (!opts.keepTab) setTab('overview');
     } catch (err) {
       flash(err.message, 'error');
     }
+  }
+
+  async function downloadTeamPdf() {
+    setTeamBusy(true);
+    try {
+      await downloadTeamReportPdf();
+    } catch (err) {
+      flash(err.message || 'Could not download team report', 'error');
+    } finally {
+      setTeamBusy(false);
+    }
+  }
+
+  function cancelEdit() {
+    if (isPersistedAssessment({ id: assessmentId })) {
+      loadSaved(assessmentId, { keepTab: true });
+      return;
+    }
+    resetDraft();
   }
 
   function resetDraft() {
@@ -860,10 +923,14 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
     const archiveCount = typeof parent === 'number'
       ? (Number.isInteger(parent) ? String(parent) : parent.toFixed(2))
       : undefined;
+    const short = { impact: 'Impact', execution: 'Exec', ownership: 'Owner', collaboration: 'Collab', growth: 'Growth' };
     return {
       id: m.key,
-      label: m.label,
-      count: archive ? archiveCount : (specs.length ? `${scored}/${specs.length}` : undefined),
+      label: short[m.key] || m.label,
+      title: m.label,
+      count: name && !archive
+        ? (specs.length ? `${scored}/${specs.length}` : undefined)
+        : (name && archive ? archiveCount : undefined),
       done: archive ? typeof parent === 'number' : (specs.length > 0 && scored === specs.length),
     };
   });
@@ -871,14 +938,21 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
     { id: 'overview', label: 'Overview' },
     ...metricTabs,
     { id: 'guides', label: 'Guides' },
-    { id: 'scorecard', label: 'Scorecard & notes' },
+    { id: 'scorecard', label: 'Score', title: 'Scorecard & notes' },
   ];
+  const canEditReview = !readOnly && isPersistedAssessment({ id: assessmentId }) && !archive;
+  const modeKind = editing ? 'edit' : archive ? 'archive' : 'view';
+  const modeText = editing ? 'Editing' : archive ? 'Archive' : 'Viewing';
+  const navSaved = useMemo(
+    () => (listRole ? visibleSaved.filter((a) => a.roleSlug === listRole) : visibleSaved),
+    [visibleSaved, listRole],
+  );
   const metricIndex = FIVE_METRICS.findIndex((m) => m.key === tab);
   const prevMetric = metricIndex > 0 ? FIVE_METRICS[metricIndex - 1] : null;
   const nextMetric = metricIndex >= 0 ? FIVE_METRICS[metricIndex + 1] : null;
 
   return (
-    <div className="app">
+    <div className={`app ${editing ? 'is-editing' : 'is-viewing'}`}>
       <header className="topbar">
         <div className="topbar-logo">GATE <span>Assessment</span></div>
         <div className="topbar-spacer" />
@@ -890,158 +964,174 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
         <button className="btn btn-plain" onClick={onLogout}>Sign out</button>
       </header>
 
-      {readOnly && (
-        <div className="banner">
-          You can view your own reviews, archives, and specs, and export them. Other people&apos;s
-          records are not shown. Scoring and role edits are manager-only.
-        </div>
-      )}
-      {archive && (
-        <div className="banner banner-info">
-          Archived review. The original five-column scores are preserved. Radar and the score table use Impact,
-          Execution, Ownership, Collaboration, and Growth.
-        </div>
-      )}
-      {draftFrom && !archive && editing && (
-        <div className="banner banner-info">
-          New review for {name || 'this employee'}. Current metric and spec-parameter scores from {draftFrom} are highlighted. Changing a specification parameter updates the parent metric.
-        </div>
-      )}
-      {!readOnly && !editing && isPersistedAssessment({ id: assessmentId }) && (
-        <div className="banner banner-info banner-row">
-          <span>Viewing saved review{archive ? '.' : '. Edit to change scores.'}</span>
-          {!archive && (
-            <button type="button" className="btn btn-accent" onClick={() => setEditing(true)}>Edit</button>
-          )}
-        </div>
-      )}
-
-      <div className="workbench">
-        <div className="page-head">
-          <div>
-            <h1>Employee assessment</h1>
-            <p className="page-sub">
-              {name || 'Select an employee to start a review'}
-              {role ? ` · ${role.label}` : ''}
-              {period ? ` · ${period}` : ''}
-              {effectiveLevel ? ` · L${effectiveLevel}` : ''}
-            </p>
-          </div>
-          {!editing && name && (
-            <div className="page-head-actions">
-              <button className="btn btn-accent" onClick={() => exportPdf(pdfPayload)}>Export PDF</button>
-            </div>
-          )}
-        </div>
-
-        {editing && (
-          <div className="card identity-card">
-          <div className="identity">
-          <div className="field">
-            <label>Employee</label>
-            <select
-              value={rolePeople.some((p) => personKey(p) === selectedPersonKey) ? selectedPersonKey : ''}
-              disabled={readOnly}
-              onChange={(e) => pickEmployee(e.target.value)}
-            >
-              <option value="">{rolePeople.length ? 'Select employee…' : 'No employees in this role'}</option>
-              {rolePeople.map((p) => (
-                <option key={personKey(p)} value={personKey(p)}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label>Name</label>
-            <input value={name} disabled={readOnly || !editing} placeholder="Full name" onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Period</label>
-            <input value={period} disabled={readOnly || !editing} placeholder="e.g. Q2 1405" onChange={(e) => setPeriod(e.target.value)} />
-          </div>
-          <div className="identity-actions">
-            {!readOnly && <button className="btn btn-accent" onClick={persist}>Save</button>}
-            <button className="btn btn-pdf" onClick={() => exportPdf(pdfPayload)}>Export PDF</button>
-          </div>
-          </div>
-          </div>
-        )}
-
-        <div className="selectors">
-          <div className="selector">
-            <div className="row-label">Role track</div>
-            <div className="pills">
-              {visibleRoles.map((r) => (
-                <button
-                  key={r.slug}
-                  className={`pill ${r.slug === role?.slug ? 'active' : ''}`}
-                  disabled={readOnly && r.slug !== role?.slug}
-                  onClick={() => {
-                    if (readOnly) return;
-                    const nextPeople = peopleForRole(visibleSaved, r.slug);
-                    const stays = nextPeople.some((p) => personKey(p) === selectedPersonKey);
-                    setRoleSlug(r.slug);
-                    if (!stays) resetDraft();
-                  }}
-                >
-                  {r.icon} {r.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="selector">
-            <div className="row-label">Career level</div>
-            <div className="levels">
-              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                <button
-                  key={n}
-                  className={`level ${effectiveLevel === n ? 'active' : ''} ${matchingLevel === n ? 'match' : ''}`}
-                  title={
-                    matchingLevel === n
-                      ? `Matches score ${fiveFinal != null ? fiveFinal.toFixed(1) : ''}`
-                      : catalog.levels.find((l) => l.id === n)?.summary
-                  }
-                  onClick={() => {
-                    if (scoringLocked) return;
-                    setLevel(n);
-                    setLevelTouched(true);
-                  }}
-                >
-                  L{n}
-                </button>
-              ))}
-            </div>
-            {matchingLevel && (
-              <p className="level-hint">
-                L{matchingLevel} matches the current score
-                {fiveFinal != null ? ` (${fiveFinal.toFixed(2)})` : ''}
-                {storedLevel && storedLevel !== matchingLevel ? ` · recorded L${storedLevel}` : ''}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <SavedPanel
-          saved={roleSaved}
+      <div className="workspace">
+        <ArchivesPanel
+          saved={navSaved}
           activeId={assessmentId}
           readOnly={readOnly}
-          onOpen={loadSaved}
+          roleFilter={listRole}
+          roles={visibleRoles}
+          onRoleFilter={setListRole}
+          onOpen={(id) => loadSaved(id)}
           onNew={fresh}
           onDelete={removeAssessment}
         />
-      </div>
 
-      <nav className="tabs">
-        <div className="tabs-inner">
-          {tabs.map((t) => (
-            <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-              {t.label}
-              {t.count && <span className={`count ${t.done ? 'done' : ''}`}>{t.count}</span>}
-            </button>
-          ))}
-        </div>
-      </nav>
+        <section className="pane-right">
+          {archive && (
+            <div className="banner banner-info">
+              Archived review — original scores are locked.
+            </div>
+          )}
+          {draftFrom && !archive && editing && (
+            <div className="banner banner-info">
+              New review for {name || 'this employee'}. Previous scores from {draftFrom} are highlighted.
+            </div>
+          )}
+
+          {!editing && (
+            <div className={`pane-right-head ${readOnly ? 'is-readonly' : ''}`}>
+              <div className="pane-right-ident">
+                <span className={`mode-chip ${modeKind}`}>{modeText}</span>
+                <div>
+                  <h1>{name || 'Select an assessment'}</h1>
+                  <p className="pane-right-sub">
+                    {period || 'No period'}
+                    {role?.label ? ` · ${role.label}` : ''}
+                    {effectiveLevel ? ` · L${effectiveLevel}` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="chrome-actions">
+                {!readOnly && canEditReview && (
+                  <button type="button" className="btn btn-accent" onClick={() => setEditing(true)}>Edit</button>
+                )}
+                {readOnly && name && (
+                  <button type="button" className="btn btn-pdf" onClick={() => exportPdf(pdfPayload)}>Export PDF</button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {editing && (
+            <div className="chrome-edit">
+              <div className="chrome-bar is-editing">
+                <span className={`mode-chip ${modeKind}`}>{modeText}</span>
+                <div className="field chrome-field">
+                  <label htmlFor="edit-employee">Employee</label>
+                  <select
+                    id="edit-employee"
+                    value={rolePeople.some((p) => personKey(p) === selectedPersonKey) ? selectedPersonKey : ''}
+                    disabled={readOnly}
+                    onChange={(e) => pickEmployee(e.target.value)}
+                  >
+                    <option value="">{rolePeople.length ? 'Select employee…' : 'No employees in this role'}</option>
+                    {rolePeople.map((p) => (
+                      <option key={personKey(p)} value={personKey(p)}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field chrome-field">
+                  <label htmlFor="edit-name">Name</label>
+                  <input id="edit-name" value={name} disabled={readOnly || !editing} placeholder="Full name" onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="field chrome-field">
+                  <label htmlFor="edit-period">Period</label>
+                  <input id="edit-period" value={period} disabled={readOnly || !editing} placeholder="e.g. Q2 1405" onChange={(e) => setPeriod(e.target.value)} />
+                </div>
+                <div className="field chrome-field">
+                  <label htmlFor="edit-role">Role</label>
+                  <select
+                    id="edit-role"
+                    value={roleSlug}
+                    disabled={readOnly}
+                    onChange={(e) => {
+                      const slug = e.target.value;
+                      const nextPeople = peopleForRole(visibleSaved, slug);
+                      const stays = nextPeople.some((p) => personKey(p) === selectedPersonKey);
+                      setRoleSlug(slug);
+                      if (!stays) {
+                        setName('');
+                        setUsername(null);
+                      }
+                    }}
+                  >
+                    {visibleRoles.map((r) => (
+                      <option key={r.slug} value={r.slug}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="chrome-actions">
+                  <button type="button" className="btn btn-plain" onClick={cancelEdit}>Cancel</button>
+                  <button type="button" className="btn btn-pdf" onClick={() => exportPdf(pdfPayload)}>Export PDF</button>
+                  {!readOnly && isPersistedAssessment({ id: assessmentId }) && (
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => {
+                        const item = saved.find((a) => String(a.id) === String(assessmentId));
+                        if (item) removeAssessment(item);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
+                  {!readOnly && <button type="button" className="btn btn-accent" onClick={persist}>Save</button>}
+                </div>
+              </div>
+              <div className="chrome-levels">
+                <span className="context-kicker">Level</span>
+                <div className="levels">
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`level ${effectiveLevel === n ? 'active' : ''} ${matchingLevel === n ? 'match' : ''}`}
+                      title={
+                        matchingLevel === n
+                          ? `Matches score ${fiveFinal != null ? fiveFinal.toFixed(1) : ''}`
+                          : catalog.levels.find((l) => l.id === n)?.summary
+                      }
+                      onClick={() => {
+                        if (scoringLocked) return;
+                        setLevel(n);
+                        setLevelTouched(true);
+                      }}
+                    >
+                      L{n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {matchingLevel && (
+                <p className="level-hint">
+                  L{matchingLevel} matches the current score
+                  {fiveFinal != null ? ` (${fiveFinal.toFixed(2)})` : ''}
+                  {storedLevel && storedLevel !== matchingLevel ? ` · recorded L${storedLevel}` : ''}
+                </p>
+              )}
+            </div>
+          )}
+
+          <nav className="tabs" aria-label="Assessment sections">
+            <div className="tabs-inner">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`tab ${tab === t.id ? 'active' : ''}`}
+                  aria-current={tab === t.id ? 'page' : undefined}
+                  title={t.title || t.label}
+                  onClick={() => setTab(t.id)}
+                >
+                  {t.label}
+                  {t.count && <span className={`count ${t.done ? 'done' : ''}`}>{t.count}</span>}
+                </button>
+              ))}
+            </div>
+          </nav>
 
       <div className="main">
         {tab === 'overview' && (
@@ -1077,7 +1167,7 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
                       <PolarGrid stroke="#d8d8cc" />
                       <PolarAngleAxis dataKey="domain" tick={{ fill: '#6b6b63', fontSize: 14 }} />
                       <PolarRadiusAxis domain={[0, SCORE_MAX]} tickCount={SCORE_MAX + 1} tick={{ fill: '#8a8a8a', fontSize: 12 }} />
-                      <Radar name="Actual" dataKey="actual" stroke="#3d7a6a" fill="#3d7a6a" fillOpacity={0.22} />
+                      <Radar name="Actual" dataKey="actual" stroke="#c97a32" fill="#c97a32" fillOpacity={0.22} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1104,7 +1194,7 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
         )}
 
         {metricIndex >= 0 && (
-          <>
+          <div className="metric-pane">
             <MetricGuide
               metricKey={tab}
               level={effectiveLevel}
@@ -1135,12 +1225,12 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
                 <button className="btn btn-quiet" onClick={() => setTab('overview')}>← Overview</button>
               )}
               {nextMetric ? (
-                <button className="btn btn-accent" onClick={() => setTab(nextMetric.key)}>{nextMetric.label} →</button>
+                <button className="btn btn-quiet" onClick={() => setTab(nextMetric.key)}>{nextMetric.label} →</button>
               ) : (
-                <button className="btn btn-accent" onClick={() => setTab('guides')}>Guides →</button>
+                <button className="btn btn-quiet" onClick={() => setTab('guides')}>Guides →</button>
               )}
             </div>
-          </>
+          </div>
         )}
 
         {tab === 'guides' && (
@@ -1228,23 +1318,17 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
 
         {tab === 'scorecard' && (
           <>
-            {!readOnly && <TeamReport saved={visibleSaved} onError={(message) => flash(message, 'error')} />}
+            {!readOnly && (
+              <TeamReport saved={visibleSaved} onDownload={downloadTeamPdf} busy={teamBusy} />
+            )}
             <ScoreTable saved={tableRecords} onOpen={(id) => { if (id && id !== 'preview') loadSaved(id); }} />
-            <div className="card">
+            <div className="card notes-export-card">
               <div className="card-head">
                 <div>
-                  <h2>Scorecard &amp; notes</h2>
+                  <h2>Notes</h2>
                   <p className="muted">
-                    Generate the review report and capture evidence notes. Parameter scores live on each metric tab and
-                    roll up here.
+                    Evidence for this review. Parameter scores live on each metric tab and roll up in the table above.
                   </p>
-                </div>
-                <div className="guide-head-actions">
-                  <button type="button" className="btn btn-pdf" onClick={() => exportPdf(pdfPayload)}>Export PDF</button>
-                  {!readOnly && editing && <button type="button" className="btn btn-accent" onClick={persist}>Save</button>}
-                  {!readOnly && !editing && !archive && (
-                    <button type="button" className="btn btn-accent" onClick={() => setEditing(true)}>Edit</button>
-                  )}
                 </div>
               </div>
               {archive && <ArchiveCard archive={archive} />}
@@ -1301,6 +1385,8 @@ export default function Assessment({ user, catalog, onOpenAdmin, onLogout }) {
             </div>
           </>
         )}
+      </div>
+        </section>
       </div>
 
       {toast && <div className={`toast ${toast.kind}`}>{toast.message}</div>}

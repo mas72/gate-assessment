@@ -93,4 +93,45 @@ npm run build
 NODE_ENV=production npm start
 ```
 
-Serves the API and the built UI on `PORT` (default 3001).
+With `HTTPS=true` in `.env`, production serves the API and built UI on HTTPS `PORT` (default **443**, Certum `*.apk-group.net` in gitignored `certs/fullchain.pem` + `certs/key.pem`). Employees open `https://gate-assessment.apk-group.net/` with no port. HTTP on `HTTP_PORT` (default 3080) only redirects to HTTPS without a port suffix when `PORT=443`. Binding 443 as a non-root user (no passwordless sudo here) needs a one-time, reversible cap on an **app-local** Node copy — not `/usr/bin/node`:
+
+```bash
+mkdir -p .bin
+cp /usr/bin/node .bin/gate-node
+sudo /sbin/setcap cap_net_bind_service=+ep /home/mastor/gate-assessment/.bin/gate-node
+# undo: sudo /sbin/setcap -r /home/mastor/gate-assessment/.bin/gate-node
+```
+
+Replacing `.bin/gate-node` (copy, `cp`, or overwrite) **drops** the capability. Re-run `setcap` before restarting, then `systemctl --user restart gate-assessment`.
+
+### systemd (survives reboot and Cursor shells)
+
+Preferred: **user** unit + linger (no AmbientCapabilities; the file cap on `.bin/gate-node` is enough):
+
+- Unit: `~/.config/systemd/user/gate-assessment.service`
+- Repo copy / system fallback: `deploy/gate-assessment.service`
+
+```bash
+loginctl enable-linger mastor
+systemctl --user daemon-reload
+systemctl --user enable --now gate-assessment.service
+systemctl --user status gate-assessment.service
+```
+
+Linger makes `user@1000` start at boot so the unit comes up without a login. Passwordless `sudo -n` is not required for this path.
+
+If the user unit cannot bind 443 or does not survive reboot, install the system unit (runs as `mastor`, not root):
+
+```bash
+sudo cp /home/mastor/gate-assessment/deploy/gate-assessment.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now gate-assessment.service
+```
+
+Do not run production from a Cursor background shell once the unit is active — only one process should listen on 443.
+
+Internal AD maps `gate-assessment.apk-group.net` → `172.25.7.28`. Do not reuse `assessment-platform.apk-group.net`. Keep the Debian nginx default site on `:80`; this app does not steal unrelated vhosts.
+
+Optional alternative (also needs sudo): `sudo ./deploy/install-nginx-tls.sh` so nginx terminates TLS on 443 and proxies to loopback 3001 (`PROXY_TLS=true`, `BIND_HOST=127.0.0.1`). Only use that if Node cannot bind 443. That script must not replace the Debian default site.
+
+Development (`npm run dev`) stays HTTP: Vite on 5173 proxies `/api` to `http://127.0.0.1:3001`. Use `PORT=3001 npm run server` for a local API so it does not compete with production on 443. `HTTPS=true` is applied only when `NODE_ENV=production`.

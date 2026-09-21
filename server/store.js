@@ -90,7 +90,9 @@ function slugify(label) {
 }
 
 function seedStore() {
-  const passwordHash = bcrypt.hashSync(defaultPassword(), 10);
+  const employeeHash = bcrypt.hashSync(defaultPassword(), 10);
+  const adminSecret = process.env.ADMIN_PASSWORD;
+  const adminHash = adminSecret ? bcrypt.hashSync(adminSecret, 10) : employeeHash;
   return {
     version: STORE_VERSION,
     users: TEAM_USERS.map((u, i) => ({
@@ -99,7 +101,7 @@ function seedStore() {
       displayName: u.displayName,
       title: u.title,
       access: u.access,
-      passwordHash,
+      passwordHash: u.access === 'admin' ? adminHash : employeeHash,
       createdAt: now(),
     })),
     roles: defaultRoles(),

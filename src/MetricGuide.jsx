@@ -100,7 +100,12 @@ function SpecRow({
               placeholder="Parameter name"
             />
           ) : (
-            <strong>{spec.title}</strong>
+            <div className="spec-title-row">
+              <strong>{spec.title}</strong>
+              <span className={`spec-inline-score ${scored ? 'on' : ''}`}>
+                {scored ? (Number.isInteger(value) ? value : value.toFixed(2)) : '—'}
+              </span>
+            </div>
           )}
           {editing ? (
             <div className="spec-edit-meta">
@@ -147,12 +152,6 @@ function SpecRow({
               </button>
             ))}
           </div>
-          {scored && (
-            <div className={`metric-badge on spec-score-badge`}>
-              <strong>{Number.isInteger(value) ? value : value.toFixed(2)}</strong>
-              <span>{scoreLabel(value)}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -185,25 +184,29 @@ function SpecRow({
       )}
 
       <div className="spec-foot">
-        {editing ? (
-          <input
-            className="spec-input"
-            value={spec.evidence}
-            placeholder="Evidence to look for"
-            onChange={(e) => onPatch({ evidence: e.target.value })}
-          />
-        ) : (
-          <p className="spec-evidence">Evidence: {spec.evidence}</p>
-        )}
-        <RangeBar band={band} level={level} />
-        <button type="button" className="details-btn" onClick={() => setOpen((s) => !s)}>
-          {open ? 'Hide L1–L7 ranges' : editing ? 'Edit L1–L7 ranges' : 'All L1–L7 ranges'}
-        </button>
-        {editing && (
-          <button type="button" className="details-btn spec-remove" onClick={onRemove}>
-            Remove parameter
+        <div className="spec-foot-copy">
+          {editing ? (
+            <input
+              className="spec-input"
+              value={spec.evidence}
+              placeholder="Evidence to look for"
+              onChange={(e) => onPatch({ evidence: e.target.value })}
+            />
+          ) : (
+            <p className="spec-evidence">Evidence: {spec.evidence}</p>
+          )}
+          {editing && (
+            <button type="button" className="details-btn spec-remove" onClick={onRemove}>
+              Remove parameter
+            </button>
+          )}
+        </div>
+        <div className="spec-foot-range">
+          <RangeBar band={band} level={level} />
+          <button type="button" className="details-btn" onClick={() => setOpen((s) => !s)}>
+            {open ? 'Hide L1–L7 ranges' : editing ? 'Edit L1–L7 ranges' : 'All L1–L7 ranges'}
           </button>
-        )}
+        </div>
       </div>
       {open && (editing ? (
         <BandEditor spec={spec} onChange={onPatch} />
@@ -359,15 +362,17 @@ export default function MetricGuide({
               ? `parameters that roll up into ${metric?.label || 'this metric'} on the 1–${SCORE_MAX} scale.`
               : `parameters that roll up into the five main metrics on the 1–${SCORE_MAX} scale.`}
             {' '}
-            {fromDefaults && !editing
-              ? `Starting from the shared ${roleLabel} guide — customize per person if this role needs different wording or weights.`
-              : 'The parent metric is the average of its scored parameters (weighted if weights differ).'}
+            {archived
+              ? 'Archive — original scores are locked.'
+              : readOnly
+                ? 'Viewing scores.'
+                : 'Editing scores — tap 1–7 on each parameter.'}
           </p>
         </div>
         <div className="guide-head-actions">
           {canEdit && !editing && (
             <button type="button" className="btn btn-quiet" onClick={startEdit}>
-              Edit {personName ? 'this person' : 'specs'}
+              Edit specs
             </button>
           )}
           {editing && (

@@ -76,9 +76,15 @@ export default function AdminRoles({ catalog, onClose, onSaved }) {
 
   return (
     <div className="main">
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button className="btn btn-plain" onClick={onClose}>← Back to assessment</button>
-        <button className="btn btn-accent" onClick={startNew}>Add role</button>
+      <div className="page-head" style={{ paddingTop: 8 }}>
+        <div>
+          <h1>Roles &amp; metrics</h1>
+          <p className="page-sub">Shared tracks used by every review.</p>
+        </div>
+        <div className="page-head-actions">
+          <button className="btn btn-plain" onClick={onClose}>Back to assessment</button>
+          <button className="btn btn-accent" onClick={startNew}>Add role</button>
+        </div>
       </div>
       {error && <div className="error">{error}</div>}
 

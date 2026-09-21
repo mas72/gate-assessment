@@ -1,0 +1,31 @@
+# Fallback *system* unit if user linger cannot keep the app on :443 across reboot.
+# Prefer the user unit: ~/.config/systemd/user/gate-assessment.service
+#
+# Install (needs sudo):
+#   sudo cp /home/mastor/gate-assessment/deploy/gate-assessment.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now gate-assessment.service
+#
+# Runs as mastor, not root. TLS key stays 600 owned by mastor.
+# Binding :443 uses setcap on .bin/gate-node — never on /usr/bin/node.
+# After replacing .bin/gate-node:
+#   sudo /sbin/setcap cap_net_bind_service=+ep /home/mastor/gate-assessment/.bin/gate-node
+
+[Unit]
+Description=GATE Assessment
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mastor
+Group=mastor
+WorkingDirectory=/home/mastor/gate-assessment
+Environment=NODE_ENV=production
+EnvironmentFile=-/home/mastor/gate-assessment/.env
+ExecStart=/home/mastor/gate-assessment/.bin/gate-node /home/mastor/gate-assessment/server/index.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

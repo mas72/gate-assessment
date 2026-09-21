@@ -9,7 +9,7 @@ import { scoreState, scoreLabel, verdictFor, expectedForLevel, SCORE_MAX, FIVE_M
 import { fiveFromSpecScores, rollupHint, METRIC_SPEC_BY_KEY } from './metric-specs.js';
 
 const bidi = bidiFactory();
-const opentype = opentypeNs.default ?? opentypeNs;
+const opentype = opentypeNs.default?.parse ? opentypeNs.default : opentypeNs;
 const convertArabic =
   reshaper?.PersianShaper?.convertArabic ||
   reshaper?.default?.PersianShaper?.convertArabic;

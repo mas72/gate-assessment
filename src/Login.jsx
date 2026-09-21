@@ -27,7 +27,7 @@ export default function Login({ onLogin }) {
       <form className="card login-card" onSubmit={submit}>
         <div className="login-brand">GATE <span>Assessment</span></div>
         <h1>Sign in</h1>
-        <p className="muted">Use your GATE username — the same one you use for Jira.</p>
+        <p className="muted">GATE username and password.</p>
 
         <div className="field" style={{ marginTop: 20 }}>
           <label htmlFor="username">Username</label>
@@ -63,11 +63,6 @@ export default function Login({ onLogin }) {
         <button className="btn btn-accent btn-block" disabled={busy || !username.trim() || !password}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
-
-        <p className="hint" title="Contact the GATE engineering manager if you cannot sign in.">
-          Use your GATE username. After you sign in you only see your own reviews. Scoring and role edits are
-          manager-only. If you cannot sign in, ask the engineering manager for a password reset.
-        </p>
       </form>
     </div>
   );

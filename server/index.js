@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
@@ -8,7 +10,6 @@ import bcrypt from 'bcryptjs';
 import {
   catalog,
   createRole,
-  defaultPassword,
   deleteAssessment,
   deleteRole,
   findUserById,
@@ -50,13 +51,32 @@ function loadEnvFile() {
 loadEnvFile();
 
 const PORT = Number(process.env.PORT) || 3001;
+const HTTP_PORT = Number(process.env.HTTP_PORT) || 3080;
 const SESSION_SECRET = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'change-this-dev-session-secret';
 const isProd = process.env.NODE_ENV === 'production';
+const useHttps = isProd && process.env.HTTPS === 'true';
+const proxyTls = process.env.PROXY_TLS === 'true';
+const terminateAtProxy = useHttps && proxyTls;
+const bindHost = process.env.BIND_HOST || (terminateAtProxy ? '127.0.0.1' : '0.0.0.0');
 const COOKIE = 'gate_session';
 const sessions = new Map();
+const loginAttempts = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 8;
 
 function sign(value) {
   return crypto.createHmac('sha256', SESSION_SECRET).update(value).digest('hex');
+}
+
+function timingSafeEqualStr(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  const len = Math.max(bufA.length, bufB.length, 1);
+  const padA = Buffer.alloc(len);
+  const padB = Buffer.alloc(len);
+  bufA.copy(padA);
+  bufB.copy(padB);
+  return bufA.length === bufB.length && crypto.timingSafeEqual(padA, padB);
 }
 
 function createSession(userId) {
@@ -65,11 +85,38 @@ function createSession(userId) {
   return id;
 }
 
+function invalidateUserSessions(userId) {
+  for (const [id, session] of sessions) {
+    if (session.userId === userId) sessions.delete(id);
+  }
+}
+
+function loginKey(req, username) {
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  return `${ip}\n${String(username || '').trim().toLowerCase()}`;
+}
+
+function loginRateLimited(req, username) {
+  const key = loginKey(req, username);
+  const now = Date.now();
+  const rec = loginAttempts.get(key);
+  if (!rec || rec.resetAt <= now) {
+    loginAttempts.set(key, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+    return false;
+  }
+  rec.count += 1;
+  return rec.count > LOGIN_MAX_ATTEMPTS;
+}
+
+function clearLoginFailures(req, username) {
+  loginAttempts.delete(loginKey(req, username));
+}
+
 function readSession(req) {
   const raw = req.cookies?.[COOKIE];
   if (!raw) return null;
   const [id, mac] = String(raw).split('.');
-  if (!id || !mac || sign(id) !== mac) return null;
+  if (!id || !mac || !timingSafeEqualStr(sign(id), mac)) return null;
   const session = sessions.get(id);
   if (!session) return null;
   return { id, ...session };
@@ -79,14 +126,14 @@ function setSessionCookie(res, sessionId) {
   res.cookie(COOKIE, `${sessionId}.${sign(sessionId)}`, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProd && process.env.HTTPS === 'true',
+    secure: useHttps,
     path: '/',
     maxAge: 14 * 24 * 60 * 60 * 1000,
   });
 }
 
 function clearSessionCookie(res) {
-  res.clearCookie(COOKIE, { path: '/' });
+  res.clearCookie(COOKIE, { path: '/', httpOnly: true, sameSite: 'lax', secure: useHttps });
 }
 
 function requireAuth(req, res, next) {
@@ -108,6 +155,9 @@ function requireAdmin(req, res, next) {
 
 const app = express();
 app.disable('x-powered-by');
+if (terminateAtProxy) {
+  app.set('trust proxy', 1);
+}
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 
@@ -118,10 +168,14 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/login', (req, res) => {
   const username = String(req.body?.username || '').trim();
   const password = String(req.body?.password || '');
+  if (loginRateLimited(req, username)) {
+    return res.status(429).json({ error: 'Too many sign-in attempts. Try again later.' });
+  }
   const user = findUserByUsername(username);
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
+  clearLoginFailures(req, username);
   const sessionId = createSession(user.id);
   setSessionCookie(res, sessionId);
   res.json({ user: publicUser(user) });
@@ -148,6 +202,9 @@ app.post('/api/password', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'Current password is wrong' });
   }
   setPasswordHash(req.user.id, bcrypt.hashSync(next, 10));
+  if (req.user.access === 'admin') sessions.clear();
+  else invalidateUserSessions(req.user.id);
+  clearSessionCookie(res);
   res.json({ ok: true });
 });
 
@@ -255,6 +312,14 @@ app.get('/api/reports/team.pdf', requireAuth, requireAdmin, (_req, res) => {
   }
 });
 
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
+app.use('/data', (_req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 if (isProd) {
   const dist = path.join(__dirname, '..', 'dist');
   if (fs.existsSync(dist)) {
@@ -265,11 +330,45 @@ if (isProd) {
   }
 }
 
-app.use('/api', (_req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+function resolveProjectPath(file) {
+  return path.isAbsolute(file) ? file : path.join(__dirname, '..', file);
+}
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`GATE assessment API on http://127.0.0.1:${PORT}`);
-  console.log(`Default password (first seed only): ${defaultPassword()}`);
-});
+function loadTlsOptions() {
+  const certFile = resolveProjectPath(process.env.TLS_CERT || 'certs/cert.pem');
+  const keyFile = resolveProjectPath(process.env.TLS_KEY || 'certs/key.pem');
+  if (!fs.existsSync(certFile) || !fs.existsSync(keyFile)) {
+    throw new Error(`HTTPS is enabled but TLS files are missing (${certFile}, ${keyFile})`);
+  }
+  return {
+    cert: fs.readFileSync(certFile),
+    key: fs.readFileSync(keyFile),
+  };
+}
+
+function redirectHttpToHttps(req, res) {
+  const host = String(req.headers.host || '').split(':')[0] || '127.0.0.1';
+  const portSuffix = PORT === 443 ? '' : `:${PORT}`;
+  const location = `https://${host}${portSuffix}${req.url || '/'}`;
+  res.writeHead(301, { Location: location });
+  res.end();
+}
+
+if (terminateAtProxy) {
+  app.listen(PORT, bindHost, () => {
+    console.log(`GATE assessment API on http://${bindHost}:${PORT} (TLS terminated at proxy)`);
+  });
+} else if (useHttps) {
+  https.createServer(loadTlsOptions(), app).listen(PORT, bindHost, () => {
+    console.log(`GATE assessment API on https://${bindHost}:${PORT}`);
+  });
+  if (HTTP_PORT > 0) {
+    http.createServer(redirectHttpToHttps).listen(HTTP_PORT, '0.0.0.0', () => {
+      console.log(`HTTP redirect to HTTPS on port ${HTTP_PORT}`);
+    });
+  }
+} else {
+  app.listen(PORT, bindHost, () => {
+    console.log(`GATE assessment API on http://${bindHost}:${PORT}`);
+  });
+}
